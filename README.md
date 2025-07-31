@@ -6,3 +6,5 @@ Currently, we have:
 - Chainlit UI
 - Custom Search Agent
 - Prompt Tuner
+- Evals UI
+- Document Preprocessing
