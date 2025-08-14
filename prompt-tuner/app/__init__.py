@@ -32,9 +32,11 @@ def create_app() -> Flask:
     from .blueprints.main import main_bp
     from .blueprints.submission_evaluation import submission_bp
     from .blueprints.prompts import prompts_bp
+    from .blueprints.workflows import workflows_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(submission_bp, url_prefix="/submission-evaluation")
     app.register_blueprint(prompts_bp, url_prefix="/prompts")
+    app.register_blueprint(workflows_bp, url_prefix="/workflows")
     
     return app

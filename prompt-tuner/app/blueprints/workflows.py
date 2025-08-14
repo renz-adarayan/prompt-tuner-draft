@@ -13,6 +13,11 @@ def workflows_list():
     """List all available workflows"""
     return render_template("workflows/list.html")
 
+@workflows_bp.route("/dynamic")
+def dynamic_workflows():
+    """Dynamic schema-driven workflows interface"""
+    return render_template("workflows/dynamic.html")
+
 @workflows_bp.route("/api/list")
 def get_workflows():
     """Get list of workflows from API"""

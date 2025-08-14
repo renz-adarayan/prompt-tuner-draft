@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+
+{% block title %}Dynamic Workflows - Prompt Tuner{% endblock %}
+
+{% block head %}
+<style>
+    .workflow-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .schema-upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 0.375rem;
+        padding: 2rem;
+        text-align: center;
+        transition: border-color 0.15s ease-in-out;
+    }
+    
+    .schema-upload-area:hover {
+        border-color: #0d6efd;
+    }
+    
+    .schema-upload-area.dragover {
+        border-color: #0d6efd;
+        background-color: #f8f9fa;
+    }
+    
+    .dynamic-form .card {
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .array-item {
+        border-left: 3px solid #6c757d;
+        padding-left: 1rem;
+        margin-left: 0.5rem;
+    }
+    
+    .union-content {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+    }
+    
+    .output-container .btn-group {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .workflow-info-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .workflow-info-card .card-body {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Dynamic Workflows</h1>
+                    <p class="text-muted mb-0">Schema-driven workflow processing with dynamic UI generation</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#customSchemaModal">
+                        <i class="bi bi-upload me-2"></i>Upload Custom Schema
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workflow Selector -->
+    <div id="workflow-selector" class="mb-4">
+        <!-- Workflow cards will be populated by JavaScript -->
+    </div>
+
+    <!-- Workflow Content Area -->
+    <div id="workflow-content" class="position-relative">
+        <!-- Workflow Info -->
+        <div id="workflow-info">
+            <!-- Workflow information will be populated when a workflow is selected -->
+        </div>
+
+        <!-- Dynamic Form Container -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-input-cursor me-2"></i>Workflow Input
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="dynamic-form-container">
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-arrow-up-circle fs-1"></i>
+                                <p class="mt-2">Select a workflow above to generate input form</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Container -->
+            <div class="col-lg-6">
+                <div id="workflow-output">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-bar-chart me-2"></i>Workflow Results
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-play-circle fs-1"></i>
+                                <p class="mt-2">Submit the form to see results</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="bi bi-question-circle me-2"></i>How it works
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-start">
+                                <div class="badge bg-primary rounded-pill me-3 mt-1">1</div>
+                                <div>
+                                    <h6 class="mb-1">Select Workflow</h6>
+                                    <small class="text-muted">Choose from available workflows or upload a custom schema</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-start">
+                                <div class="badge bg-primary rounded-pill me-3 mt-1">2</div>
+                                <div>
+                                    <h6 class="mb-1">Fill Dynamic Form</h6>
+                                    <small class="text-muted">The form is automatically generated based on the workflow schema</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-start">
+                                <div class="badge bg-primary rounded-pill me-3 mt-1">3</div>
+                                <div>
+                                    <h6 class="mb-1">View Results</h6>
+                                    <small class="text-muted">Results are displayed in multiple formats with export options</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Schema Upload Modal -->
+<div class="modal fade" id="customSchemaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Custom Schema</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="schemaFile" class="form-label">Upload Schema File</label>
+                    <input type="file" class="form-control" id="schemaFile" accept=".json" onchange="handleSchemaFileUpload(this)">
+                    <div class="form-text">Upload a JSON schema file defining your workflow structure</div>
+                </div>
+                
+                <div class="text-center my-3">
+                    <span class="text-muted">— OR —</span>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="schemaText" class="form-label">Paste Schema JSON</label>
+                    <textarea class="form-control" id="schemaText" rows="10" placeholder="Paste your JSON schema here..."></textarea>
+                </div>
+                
+                <div class="schema-upload-area" id="schemaDropArea">
+                    <i class="bi bi-cloud-upload fs-1 text-muted"></i>
+                    <p class="mt-2 mb-0">Drag and drop a JSON file here</p>
+                    <small class="text-muted">or use the file input above</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="loadCustomSchema()">Load Schema</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Custom schema upload handling
+function handleSchemaFileUpload(input) {
+    const file = input.files[0];
+    if (file && file.type === 'application/json') {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('schemaText').value = e.target.result;
+        };
+        reader.readAsText(file);
+    } else {
+        Utils.showToast('Please select a valid JSON file', 'warning');
+    }
+}
+
+function loadCustomSchema() {
+    const schemaText = document.getElementById('schemaText').value.trim();
+    if (!schemaText) {
+        Utils.showToast('Please provide a schema', 'warning');
+        return;
+    }
+
+    try {
+        const schema = JSON.parse(schemaText);
+        
+        // Trigger custom schema event
+        const event = new CustomEvent('customSchemaUploaded', {
+            detail: { schema: schema }
+        });
+        document.dispatchEvent(event);
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('customSchemaModal'));
+        modal.hide();
+        
+        // Clear form
+        document.getElementById('schemaText').value = '';
+        document.getElementById('schemaFile').value = '';
+        
+    } catch (error) {
+        Utils.showToast('Invalid JSON schema: ' + error.message, 'danger');
+    }
+}
+
+// Drag and drop functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const dropArea = document.getElementById('schemaDropArea');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight(e) {
+        dropArea.classList.add('dragover');
+    }
+    
+    function unhighlight(e) {
+        dropArea.classList.remove('dragover');
+    }
+    
+    dropArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type === 'application/json') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('schemaText').value = e.target.result;
+                };
+                reader.readAsText(file);
+            } else {
+                Utils.showToast('Please drop a valid JSON file', 'warning');
+            }
+        }
+    }
+});
+
+// Test with bike insights schema
+function loadBikeInsightsExample() {
+    const exampleSchema = {
+        "definitions": {
+            "RootModel": {
+                "type": "object",
+                "properties": {
+                    "stores": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {"type": "string", "description": "Store name"},
+                                "location": {"type": "string", "description": "Store location"}
+                            },
+                            "required": ["name", "location"]
+                        },
+                        "description": "List of bike stores to analyze"
+                    }
+                },
+                "required": ["stores"]
+            }
+        }
+    };
+    
+    document.getElementById('schemaText').value = JSON.stringify(exampleSchema, null, 2);
+}
+
+// Add example button to modal
+document.addEventListener('DOMContentLoaded', function() {
+    const modalFooter = document.querySelector('#customSchemaModal .modal-footer');
+    const exampleBtn = document.createElement('button');
+    exampleBtn.type = 'button';
+    exampleBtn.className = 'btn btn-outline-info me-auto';
+    exampleBtn.innerHTML = '<i class="bi bi-lightbulb me-1"></i>Load Example';
+    exampleBtn.onclick = loadBikeInsightsExample;
+    modalFooter.insertBefore(exampleBtn, modalFooter.firstChild);
+});
+</script>
+{% endblock %}

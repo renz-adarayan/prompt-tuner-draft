@@ -43,6 +43,12 @@
                         </a>
                     </li>
                     <li class="nav-item me-2">
+                        <a class="nav-link px-3 py-2 {% if request.endpoint and request.endpoint.startswith('workflows.dynamic') %}active{% endif %}"
+                            href="{{ url_for('workflows.dynamic_workflows') }}">
+                            <i class="bi bi-diagram-3 me-2"></i>Dynamic Workflows
+                        </a>
+                    </li>
+                    <li class="nav-item me-2">
                         <a class="nav-link px-3 py-2 {% if request.endpoint and request.endpoint.startswith('submission_evaluation.prompts') %}active{% endif %}"
                             href="{{ url_for('submission_evaluation.prompts') }}">
                             <i class="bi bi-file-earmark-text me-2"></i>Prompts
@@ -80,6 +86,10 @@
 
     <!-- Custom JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/schema-parser.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/form-generator.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/output-renderer.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/workflow-manager.js') }}" defer></script>
 
     {% block scripts %}{% endblock %}
 </body>
