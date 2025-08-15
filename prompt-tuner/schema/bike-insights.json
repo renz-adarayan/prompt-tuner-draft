@@ -1,0 +1,189 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Bike Store Management Schema",
+  "description": "Schema for bike store management system with sales, inventory, and customer reviews",
+  "type": "object",
+  "properties": {
+    "stores": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Store"
+      }
+    }
+  },
+  "required": ["stores"],
+  "definitions": {
+    "Store": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the bike store"
+        },
+        "location": {
+          "type": "string",
+          "description": "Physical location of the store"
+        },
+        "bike_sales": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BikeSale"
+          }
+        },
+        "bike_stock": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BikeStock"
+          }
+        }
+      },
+      "required": ["name", "location", "bike_sales", "bike_stock"]
+    },
+    "BikeSale": {
+      "type": "object",
+      "properties": {
+        "product_code": {
+          "type": "string",
+          "description": "Unique product identifier"
+        },
+        "quantity_sold": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of units sold"
+        },
+        "sale_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date of the sale"
+        },
+        "year": {
+          "type": "integer",
+          "minimum": 2020,
+          "maximum": 2030,
+          "description": "Year of the sale"
+        },
+        "month": {
+          "type": "string",
+          "enum": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+          "description": "Month of the sale"
+        },
+        "customer_review": {
+          "$ref": "#/definitions/CustomerReview"
+        }
+      },
+      "required": ["product_code", "quantity_sold", "sale_date", "year", "month", "customer_review"]
+    },
+    "BikeStock": {
+      "type": "object",
+      "properties": {
+        "bike": {
+          "oneOf": [
+            {"$ref": "#/definitions/MountainBike"},
+            {"$ref": "#/definitions/RoadBike"},
+            {"$ref": "#/definitions/ElectricBike"}
+          ]
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of bikes in stock"
+        }
+      },
+      "required": ["bike", "quantity"]
+    },
+    "Bike": {
+      "type": "object",
+      "properties": {
+        "brand": {
+          "type": "string",
+          "description": "Brand of the bike"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model of the bike"
+        },
+        "year": {
+          "type": "integer",
+          "minimum": 2020,
+          "maximum": 2030,
+          "description": "Manufacturing year"
+        },
+        "price": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Price of the bike"
+        }
+      },
+      "required": ["brand", "model", "year", "price"]
+    },
+    "MountainBike": {
+      "allOf": [
+        {"$ref": "#/definitions/Bike"},
+        {
+          "type": "object",
+          "properties": {
+            "suspension": {
+              "type": "string",
+              "enum": ["full", "hardtail", "rigid"],
+              "description": "Type of suspension"
+            }
+          },
+          "required": ["suspension"]
+        }
+      ]
+    },
+    "RoadBike": {
+      "allOf": [
+        {"$ref": "#/definitions/Bike"},
+        {
+          "type": "object",
+          "properties": {
+            "frame_material": {
+              "type": "string",
+              "enum": ["carbon", "aluminum", "steel", "titanium"],
+              "description": "Material of the frame"
+            }
+          },
+          "required": ["frame_material"]
+        }
+      ]
+    },
+    "ElectricBike": {
+      "allOf": [
+        {"$ref": "#/definitions/Bike"},
+        {
+          "type": "object",
+          "properties": {
+            "battery_capacity": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Battery capacity in kWh"
+            },
+            "motor_power": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Motor power in watts"
+            }
+          },
+          "required": ["battery_capacity", "motor_power"]
+        }
+      ]
+    },
+    "CustomerReview": {
+      "type": "object",
+      "properties": {
+        "rating": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Customer rating from 1 to 5"
+        },
+        "comment": {
+          "type": "string",
+          "description": "Customer feedback comment"
+        }
+      },
+      "required": ["rating", "comment"]
+    }
+  }
+}

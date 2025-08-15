@@ -1,0 +1,1293 @@
+{% extends "base.html" %}
+
+{% block title %}Enhanced Bike Store Management - Prompt Tuner{% endblock %}
+
+{% block head %}
+<style>
+    :root {
+        --primary-blue: #007bff;
+        --light-blue: #e3f2fd;
+        --border-color: #dee2e6;
+        --text-muted: #6c757d;
+        --danger-red: #dc3545;
+        --success-green: #28a745;
+    }
+
+    .enhanced-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    /* Tab Navigation */
+    .tab-navigation {
+        display: flex;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 2rem;
+        gap: 0;
+    }
+
+    .tab-button {
+        background: none;
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .tab-button:hover {
+        color: var(--primary-blue);
+        background-color: #f8f9fa;
+    }
+
+    .tab-button.active {
+        color: var(--primary-blue);
+        border-bottom-color: var(--primary-blue);
+        background-color: white;
+    }
+
+    /* Tab Content */
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Card Styles */
+    .enhanced-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: box-shadow 0.2s ease;
+    }
+
+    .enhanced-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .store-card {
+        border-left: 4px solid var(--primary-blue);
+    }
+
+    .sales-card {
+        border-left: 4px solid var(--primary-blue);
+    }
+
+    .stock-card {
+        border-left: 4px solid var(--primary-blue);
+    }
+
+    /* Form Elements */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .form-input::placeholder {
+        color: #adb5bd;
+    }
+
+    /* Bike Type Selection Cards */
+    .bike-type-selection {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .bike-type-card {
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: white;
+    }
+
+    .bike-type-card:hover {
+        border-color: var(--primary-blue);
+        background-color: var(--light-blue);
+    }
+
+    .bike-type-card.selected {
+        border-color: var(--primary-blue);
+        background-color: var(--light-blue);
+    }
+
+    .bike-type-icon {
+        font-size: 1.5rem;
+        width: 2rem;
+        text-align: center;
+    }
+
+    .bike-type-name {
+        font-weight: 500;
+        color: #333;
+    }
+
+    /* Buttons */
+    .btn-primary {
+        background-color: var(--primary-blue);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-danger {
+        background-color: var(--danger-red);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    .btn-secondary {
+        background-color: var(--text-muted);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+        background-color: #545b62;
+    }
+
+    /* Section Headers */
+    .section-header {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .subsection-header {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    /* Customer Review Section */
+    .review-section {
+        background-color: #f8f9fa;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .rating-input {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .rating-label {
+        font-weight: 500;
+        color: #333;
+        min-width: 100px;
+    }
+
+    .rating-number {
+        width: 80px;
+        padding: 0.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    .comment-textarea {
+        width: 100%;
+        min-height: 100px;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        justify-content: flex-start;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .enhanced-container {
+            padding: 1rem;
+        }
+        
+        .tab-button {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .action-buttons button {
+            width: 100%;
+        }
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Form Grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Date Input Styling */
+    .date-input {
+        position: relative;
+    }
+
+    .date-input input[type="date"] {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 1rem;
+    }
+
+    /* Select Styling */
+    .select-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 1rem;
+        background-color: white;
+        cursor: pointer;
+    }
+
+    .select-input:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    /* Schema Selector Tiles */
+    .schema-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .schema-tile {
+        background: white;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .schema-tile:hover {
+        border-color: var(--primary-blue);
+        box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .schema-tile.active {
+        border-color: var(--primary-blue);
+        background: linear-gradient(135deg, var(--light-blue) 0%, white 100%);
+        box-shadow: 0 8px 25px rgba(0, 123, 255, 0.2);
+    }
+
+    .schema-tile.active::before {
+        content: '✓';
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--primary-blue);
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    .schema-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .schema-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .schema-description {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    @media (max-width: 768px) {
+        .schema-selector {
+            grid-template-columns: 1fr;
+        }
+        
+        .schema-tile {
+            padding: 1.5rem;
+        }
+        
+        .schema-icon {
+            font-size: 2.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="enhanced-container">
+    <!-- Page Header -->
+    <div class="page-header" style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 600; color: #333; margin-bottom: 0.5rem;">
+            Enhanced Management System
+        </h1>
+        <p style="color: var(--text-muted); margin: 0;">
+            Manage your entities, transactions, and inventory in one comprehensive interface
+        </p>
+    </div>
+
+    <!-- Schema Selection -->
+    <div class="section-header">Schema Selection</div>
+    <div class="schema-selector">
+        <div class="schema-tile active" id="bike-schema" onclick="selectSchema('bike-insights', this)">
+            <div class="schema-icon">🚴</div>
+            <div class="schema-title">Bike Store Management</div>
+            <div class="schema-description">Manage bike stores, sales, and inventory with customer reviews</div>
+        </div>
+        <div class="schema-tile" id="restaurant-schema" onclick="selectSchema('restaurant-recommender', this)">
+            <div class="schema-icon">🍽️</div>
+            <div class="schema-title">Restaurant Recommender</div>
+            <div class="schema-description">Restaurant recommendations with reviews, menus, and user preferences</div>
+        </div>
+        <div class="schema-tile" id="custom-schema" onclick="selectSchema('custom', this)">
+            <div class="schema-icon">⚙️</div>
+            <div class="schema-title">Custom Schema</div>
+            <div class="schema-description">Define your own custom data structure and workflow</div>
+        </div>
+    </div>
+
+    <!-- Single Unified Interface -->
+    <div class="section-header" id="entity-header">Entity Management</div>
+    
+    <div id="stores-container">
+        <!-- Stores with integrated sales and stock will be dynamically added here -->
+    </div>
+    
+    <div class="action-buttons">
+        <button class="btn-primary" onclick="addStore()">Add Store</button>
+    </div>
+
+    <!-- Process Data Section -->
+    <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--border-color);">
+        <div class="action-buttons">
+            <button class="btn-primary" onclick="processData()" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                🚀 Process All Data
+            </button>
+            <button class="btn-secondary" onclick="exportData()">
+                📤 Export Data
+            </button>
+            <button class="btn-secondary" onclick="resetAll()">
+                🔄 Reset All
+            </button>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results-section" style="margin-top: 2rem; display: none;">
+        <div class="section-header">Processing Results</div>
+        <div id="results-container" class="enhanced-card">
+            <!-- Results will be displayed here -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Global data storage
+let entityData = {
+    entities: [],
+    transactions: {},
+    inventory: {}
+};
+
+let entityCounter = 0;
+let transactionCounter = {};
+let inventoryCounter = {};
+
+// Current selected schema
+let currentSchema = 'bike-insights';
+
+// Schema Selection Function
+function selectSchema(schemaName, element) {
+    // Remove active class from all tiles
+    document.querySelectorAll('.schema-tile').forEach(tile => {
+        tile.classList.remove('active');
+    });
+    
+    // Add active class to selected tile
+    element.classList.add('active');
+    
+    // Update current schema
+    currentSchema = schemaName;
+    
+    // Update interface based on selected schema
+    updateInterfaceForSchema(schemaName);
+    
+    // Clear existing data when switching schemas
+    resetAll(false); // false = don't show confirmation
+}
+
+function updateInterfaceForSchema(schemaName) {
+    const entityHeader = document.getElementById('entity-header');
+    const addButton = document.querySelector('.action-buttons button[onclick="addStore()"]');
+    
+    switch(schemaName) {
+        case 'bike-insights':
+            entityHeader.textContent = 'Bike Store Management';
+            addButton.textContent = 'Add Store';
+            addButton.setAttribute('onclick', 'addStore()');
+            break;
+        case 'restaurant-recommender':
+            entityHeader.textContent = 'Restaurant Management';
+            addButton.textContent = 'Add Restaurant';
+            addButton.setAttribute('onclick', 'addRestaurant()');
+            break;
+        case 'custom':
+            entityHeader.textContent = 'Custom Entity Management';
+            addButton.textContent = 'Add Entity';
+            addButton.setAttribute('onclick', 'addCustomEntity()');
+            break;
+    }
+}
+
+
+// Entity Management Functions
+function addStore() {
+    entityCounter++;
+    const entityId = `entity-${entityCounter}`;
+    
+    const entityHtml = `
+        <div class="enhanced-card store-card" id="${entityId}">
+            <div class="subsection-header">Entity ${entityCounter}</div>
+            
+            <!-- Entity Details -->
+            <div class="form-group">
+                <label class="form-label">Entity Name</label>
+                <input type="text" class="form-input" placeholder="Enter entity name" 
+                       onchange="updateEntityData('${entityId}', 'name', this.value)">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" class="form-input" placeholder="Enter location" 
+                       onchange="updateEntityData('${entityId}', 'location', this.value)">
+            </div>
+            
+            <!-- Transactions Section -->
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <div class="subsection-header">📊 Transaction Management</div>
+                <div id="transactions-${entityId}">
+                    <!-- Transactions will be added here -->
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="addTransaction('${entityId}')">Add Transaction</button>
+                </div>
+            </div>
+            
+            <!-- Inventory Section -->
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <div class="subsection-header">📦 Inventory Management</div>
+                <div id="inventory-${entityId}">
+                    <!-- Inventory items will be added here -->
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-secondary" onclick="addInventoryItem('${entityId}')">Add Inventory Item</button>
+                </div>
+            </div>
+            
+            <!-- Entity Actions -->
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <div class="action-buttons">
+                    <button class="btn-danger" onclick="removeEntity('${entityId}')">Remove Entity</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('stores-container').insertAdjacentHTML('beforeend', entityHtml);
+    
+    // Initialize entity data
+    entityData.entities.push({
+        id: entityId,
+        name: '',
+        location: ''
+    });
+    
+    // Initialize transactions and inventory for this entity
+    entityData.transactions[entityId] = [];
+    entityData.inventory[entityId] = [];
+    transactionCounter[entityId] = 0;
+    inventoryCounter[entityId] = 0;
+}
+
+function removeStore(storeId) {
+    // Remove from DOM
+    document.getElementById(storeId).remove();
+    
+    // Remove from data
+    storeData.stores = storeData.stores.filter(store => store.id !== storeId);
+    delete storeData.sales[storeId];
+    delete storeData.stock[storeId];
+    delete salesCounter[storeId];
+    delete stockCounter[storeId];
+}
+
+function updateStoreData(storeId, field, value) {
+    const store = storeData.stores.find(s => s.id === storeId);
+    if (store) {
+        store[field] = value;
+    }
+}
+
+// Sales Management Functions
+
+function addSale(storeId) {
+    salesCounter[storeId]++;
+    const saleId = `sale-${storeId}-${salesCounter[storeId]}`;
+    
+    const sale = {
+        id: saleId,
+        productCode: '',
+        quantitySold: 1,
+        saleDate: new Date().toISOString().split('T')[0],
+        year: new Date().getFullYear(),
+        month: '',
+        customerReview: {
+            rating: 5,
+            comment: ''
+        }
+    };
+    
+    storeData.sales[storeId].push(sale);
+    
+    const saleHtml = generateSaleHtml(storeId, sale);
+    document.getElementById(`sales-${storeId}`).insertAdjacentHTML('beforeend', saleHtml);
+}
+
+function generateSaleHtml(storeId, sale) {
+    const saleNumber = sale.id.split('-')[2];
+    
+    return `
+        <div class="enhanced-card" id="${sale.id}" style="margin-left: 1rem; border-left: 3px solid #6c757d;">
+            <div class="subsection-header">Sale ${saleNumber}</div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Product Code</label>
+                    <input type="text" class="form-input" value="${sale.productCode}" 
+                           onchange="updateSaleData('${storeId}', '${sale.id}', 'productCode', this.value)">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Quantity Sold</label>
+                    <input type="number" class="form-input" value="${sale.quantitySold}" min="1"
+                           onchange="updateSaleData('${storeId}', '${sale.id}', 'quantitySold', parseInt(this.value))">
+                </div>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Sale Date</label>
+                    <div class="date-input">
+                        <input type="date" class="form-input" value="${sale.saleDate}"
+                               onchange="updateSaleData('${storeId}', '${sale.id}', 'saleDate', this.value)">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Year</label>
+                    <input type="number" class="form-input" value="${sale.year}" min="2020" max="2030"
+                           onchange="updateSaleData('${storeId}', '${sale.id}', 'year', parseInt(this.value))">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Month</label>
+                <select class="select-input" onchange="updateSaleData('${storeId}', '${sale.id}', 'month', this.value)">
+                    <option value="">Select month</option>
+                    <option value="January" ${sale.month === 'January' ? 'selected' : ''}>January</option>
+                    <option value="February" ${sale.month === 'February' ? 'selected' : ''}>February</option>
+                    <option value="March" ${sale.month === 'March' ? 'selected' : ''}>March</option>
+                    <option value="April" ${sale.month === 'April' ? 'selected' : ''}>April</option>
+                    <option value="May" ${sale.month === 'May' ? 'selected' : ''}>May</option>
+                    <option value="June" ${sale.month === 'June' ? 'selected' : ''}>June</option>
+                    <option value="July" ${sale.month === 'July' ? 'selected' : ''}>July</option>
+                    <option value="August" ${sale.month === 'August' ? 'selected' : ''}>August</option>
+                    <option value="September" ${sale.month === 'September' ? 'selected' : ''}>September</option>
+                    <option value="October" ${sale.month === 'October' ? 'selected' : ''}>October</option>
+                    <option value="November" ${sale.month === 'November' ? 'selected' : ''}>November</option>
+                    <option value="December" ${sale.month === 'December' ? 'selected' : ''}>December</option>
+                </select>
+            </div>
+            
+            <div class="review-section">
+                <div class="subsection-header">Customer Review</div>
+                
+                <div class="rating-input">
+                    <span class="rating-label">Rating (1-5)</span>
+                    <input type="number" class="rating-number" value="${sale.customerReview.rating}" 
+                           min="1" max="5" onchange="updateSaleReview('${storeId}', '${sale.id}', 'rating', parseInt(this.value))">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Comment</label>
+                    <textarea class="comment-textarea" placeholder="Customer feedback..."
+                              onchange="updateSaleReview('${storeId}', '${sale.id}', 'comment', this.value)">${sale.customerReview.comment}</textarea>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn-danger" onclick="removeSale('${storeId}', '${sale.id}')">Remove Sale</button>
+            </div>
+        </div>
+    `;
+}
+
+function updateSaleData(storeId, saleId, field, value) {
+    const sale = storeData.sales[storeId].find(s => s.id === saleId);
+    if (sale) {
+        sale[field] = value;
+    }
+}
+
+function updateSaleReview(storeId, saleId, field, value) {
+    const sale = storeData.sales[storeId].find(s => s.id === saleId);
+    if (sale) {
+        sale.customerReview[field] = value;
+    }
+}
+
+function removeSale(storeId, saleId) {
+    // Remove from DOM
+    document.getElementById(saleId).remove();
+    
+    // Remove from data
+    storeData.sales[storeId] = storeData.sales[storeId].filter(sale => sale.id !== saleId);
+}
+
+// Stock Management Functions
+
+function addStockItem(storeId) {
+    stockCounter[storeId]++;
+    const itemId = `stock-${storeId}-${stockCounter[storeId]}`;
+    
+    const stockItem = {
+        id: itemId,
+        bikeType: '',
+        brand: '',
+        model: '',
+        year: new Date().getFullYear(),
+        price: 0,
+        quantity: 0
+    };
+    
+    storeData.stock[storeId].push(stockItem);
+    
+    const stockHtml = generateStockHtml(storeId, stockItem);
+    document.getElementById(`stock-${storeId}`).insertAdjacentHTML('beforeend', stockHtml);
+}
+
+function generateStockHtml(storeId, item) {
+    const itemNumber = item.id.split('-')[2];
+    
+    return `
+        <div class="enhanced-card" id="${item.id}" style="margin-left: 1rem; border-left: 3px solid #6c757d;">
+            <div class="subsection-header">Bike Stock Item ${itemNumber}</div>
+            
+            <div class="form-group">
+                <label class="form-label">Bike Type</label>
+                <div class="bike-type-selection">
+                    <div class="bike-type-card ${item.bikeType === 'Mountain Bike' ? 'selected' : ''}" 
+                         onclick="selectBikeType('${storeId}', '${item.id}', 'Mountain Bike', this)">
+                        <span class="bike-type-icon">🏔️</span>
+                        <span class="bike-type-name">Mountain Bike</span>
+                    </div>
+                    <div class="bike-type-card ${item.bikeType === 'Road Bike' ? 'selected' : ''}" 
+                         onclick="selectBikeType('${storeId}', '${item.id}', 'Road Bike', this)">
+                        <span class="bike-type-icon">🏁</span>
+                        <span class="bike-type-name">Road Bike</span>
+                    </div>
+                    <div class="bike-type-card ${item.bikeType === 'Electric Bike' ? 'selected' : ''}" 
+                         onclick="selectBikeType('${storeId}', '${item.id}', 'Electric Bike', this)">
+                        <span class="bike-type-icon">⚡</span>
+                        <span class="bike-type-name">Electric Bike</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Brand</label>
+                    <input type="text" class="form-input" placeholder="e.g., Trek, Specialized" value="${item.brand}"
+                           onchange="updateStockData('${storeId}', '${item.id}', 'brand', this.value)">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Model</label>
+                    <input type="text" class="form-input" placeholder="e.g., Domane SL 7" value="${item.model}"
+                           onchange="updateStockData('${storeId}', '${item.id}', 'model', this.value)">
+                </div>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Year</label>
+                    <input type="number" class="form-input" value="${item.year}" min="2020" max="2030"
+                           onchange="updateStockData('${storeId}', '${item.id}', 'year', parseInt(this.value))">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Price ($)</label>
+                    <input type="number" class="form-input" value="${item.price}" min="0" step="0.01"
+                           onchange="updateStockData('${storeId}', '${item.id}', 'price', parseFloat(this.value))">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Quantity in Stock</label>
+                <input type="number" class="form-input" value="${item.quantity}" min="0"
+                       onchange="updateStockData('${storeId}', '${item.id}', 'quantity', parseInt(this.value))">
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn-danger" onclick="removeStockItem('${storeId}', '${item.id}')">Remove Stock Item</button>
+            </div>
+        </div>
+    `;
+}
+
+function selectBikeType(storeId, itemId, bikeType, element) {
+    // Remove selected class from siblings
+    element.parentNode.querySelectorAll('.bike-type-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked element
+    element.classList.add('selected');
+    
+    // Update data
+    updateStockData(storeId, itemId, 'bikeType', bikeType);
+}
+
+function updateStockData(storeId, itemId, field, value) {
+    const item = storeData.stock[storeId].find(i => i.id === itemId);
+    if (item) {
+        item[field] = value;
+    }
+}
+
+function removeStockItem(storeId, itemId) {
+    // Remove from DOM
+    document.getElementById(itemId).remove();
+    
+    // Remove from data
+    storeData.stock[storeId] = storeData.stock[storeId].filter(item => item.id !== itemId);
+}
+
+// Data Processing Functions
+function processData() {
+    if (storeData.stores.length === 0) {
+        alert('Please add at least one store before processing data.');
+        return;
+    }
+    
+    // Show results section
+    const resultsSection = document.getElementById('results-section');
+    resultsSection.style.display = 'block';
+    
+    // Generate mock results based on the data
+    const results = generateMockResults();
+    displayResults(results);
+    
+    // Scroll to results
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+function generateMockResults() {
+    const totalStores = storeData.stores.length;
+    let totalSales = 0;
+    let totalRevenue = 0;
+    let totalStock = 0;
+    let totalStockValue = 0;
+    
+    // Calculate totals
+    Object.values(storeData.sales).forEach(storeSales => {
+        totalSales += storeSales.length;
+    });
+    
+    Object.values(storeData.stock).forEach(storeStock => {
+        storeStock.forEach(item => {
+            totalStock += item.quantity;
+            totalStockValue += item.price * item.quantity;
+        });
+    });
+    
+    // Generate mock revenue (for demo purposes)
+    totalRevenue = totalSales * 1500 + Math.random() * 10000;
+    
+    return {
+        summary: {
+            totalStores,
+            totalSales,
+            totalRevenue: totalRevenue.toFixed(2),
+            totalStock,
+            totalStockValue: totalStockValue.toFixed(2)
+        },
+        storePerformance: storeData.stores.map(store => {
+            const storeSales = storeData.sales[store.id] || [];
+            const storeStock = storeData.stock[store.id] || [];
+            const storeRevenue = storeSales.length * 1500 + Math.random() * 5000;
+            
+            return {
+                name: store.name || `Store ${store.id.split('-')[1]}`,
+                location: store.location || 'Not specified',
+                sales: storeSales.length,
+                revenue: storeRevenue.toFixed(2),
+                stockItems: storeStock.length,
+                avgRating: storeSales.length > 0 ? 
+                    (storeSales.reduce((sum, sale) => sum + sale.customerReview.rating, 0) / storeSales.length).toFixed(1) : 
+                    'N/A'
+            };
+        }),
+        insights: [
+            `You have ${totalStores} store${totalStores !== 1 ? 's' : ''} in your network`,
+            `Total of ${totalSales} sales recorded across all stores`,
+            `Current inventory contains ${totalStock} bikes worth $${totalStockValue.toFixed(2)}`,
+            totalSales > 0 ? `Average revenue per sale: $${(totalRevenue / totalSales).toFixed(2)}` : 'No sales data available for revenue analysis'
+        ]
+    };
+}
+
+function displayResults(results) {
+    const container = document.getElementById('results-container');
+    
+    const html = `
+        <div style="margin-bottom: 2rem;">
+            <h4 style="color: #333; margin-bottom: 1rem;">📊 Business Summary</h4>
+            <div class="form-grid" style="margin-bottom: 2rem;">
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-blue);">${results.summary.totalStores}</div>
+                    <div style="color: var(--text-muted);">Total Stores</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: bold; color: var(--success-green);">${results.summary.totalSales}</div>
+                    <div style="color: var(--text-muted);">Total Sales</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: bold; color: var(--success-green);">$${results.summary.totalRevenue}</div>
+                    <div style="color: var(--text-muted);">Total Revenue</div>
+                </div>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-blue);">${results.summary.totalStock}</div>
+                    <div style="color: var(--text-muted);">Stock Items</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 2rem;">
+            <h4 style="color: #333; margin-bottom: 1rem;">🏪 Store Performance</h4>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; background: white;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid var(--border-color);">Store</th>
+                            <th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid var(--border-color);">Location</th>
+                            <th style="padding: 0.75rem; text-align: center; border-bottom: 2px solid var(--border-color);">Sales</th>
+                            <th style="padding: 0.75rem; text-align: center; border-bottom: 2px solid var(--border-color);">Revenue</th>
+                            <th style="padding: 0.75rem; text-align: center; border-bottom: 2px solid var(--border-color);">Stock Items</th>
+                            <th style="padding: 0.75rem; text-align: center; border-bottom: 2px solid var(--border-color);">Avg Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${results.storePerformance.map(store => `
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.75rem; font-weight: 500;">${store.name}</td>
+                                <td style="padding: 0.75rem; color: var(--text-muted);">${store.location}</td>
+                                <td style="padding: 0.75rem; text-align: center;">${store.sales}</td>
+                                <td style="padding: 0.75rem; text-align: center; color: var(--success-green); font-weight: 500;">$${store.revenue}</td>
+                                <td style="padding: 0.75rem; text-align: center;">${store.stockItems}</td>
+                                <td style="padding: 0.75rem; text-align: center;">${store.avgRating}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div>
+            <h4 style="color: #333; margin-bottom: 1rem;">💡 Key Insights</h4>
+            <ul style="list-style: none; padding: 0;">
+                ${results.insights.map(insight => `
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #f0f0f0;">
+                        <span style="color: var(--primary-blue); margin-right: 0.5rem;">•</span>
+                        ${insight}
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+function exportData() {
+    const dataToExport = {
+        timestamp: new Date().toISOString(),
+        stores: storeData.stores,
+        sales: storeData.sales,
+        stock: storeData.stock
+    };
+    
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = `bike-store-data-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+}
+
+function resetAll(showConfirmation = true) {
+    if (!showConfirmation || confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
+        // Reset data
+        entityData = {
+            entities: [],
+            transactions: {},
+            inventory: {}
+        };
+        
+        entityCounter = 0;
+        transactionCounter = {};
+        inventoryCounter = {};
+        
+        // Clear UI
+        document.getElementById('stores-container').innerHTML = '';
+        
+        // Hide results
+        document.getElementById('results-section').style.display = 'none';
+    }
+}
+
+// Restaurant Schema Functions
+function addRestaurant() {
+    entityCounter++;
+    const entityId = `entity-${entityCounter}`;
+    
+    const entityHtml = `
+        <div class="enhanced-card store-card" id="${entityId}">
+            <div class="subsection-header">Restaurant ${entityCounter}</div>
+            
+            <!-- Restaurant Details -->
+            <div class="form-group">
+                <label class="form-label">Restaurant Name</label>
+                <input type="text" class="form-input" placeholder="Enter restaurant name" 
+                       onchange="updateEntityData('${entityId}', 'name', this.value)">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" class="form-input" placeholder="Enter location" 
+                       onchange="updateEntityData('${entityId}', 'location', this.value)">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Cuisine Type</label>
+                <select class="select-input" onchange="updateEntityData('${entityId}', 'cuisine', this.value)">
+                    <option value="">Select cuisine type</option>
+                    <option value="Italian">Italian</option>
+                    <option value="Chinese">Chinese</option>
+                    <option value="Japanese">Japanese</option>
+                    <option value="Mexican">Mexican</option>
+                    <option value="Indian">Indian</option>
+                    <option value="French">French</option>
+                    <option value="Thai">Thai</option>
+                    <option value="American">American</option>
+                    <option value="Mediterranean">Mediterranean</option>
+                </select>
+            </div>
+            
+            <!-- Reviews Section -->
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <div class="subsection-header">⭐ Customer Reviews</div>
+                <div id="transactions-${entityId}">
+                    <!-- Reviews will be added here -->
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="addReview('${entityId}')">Add Review</button>
+                </div>
+            </div>
+            
+            <!-- Menu Section -->
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <div class="subsection-header">🍽️ Menu Management</div>
+                <div id="inventory-${entityId}">
+                    <!-- Menu items will be added here -->
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-secondary" onclick="addMenuItem('${entityId}')">Add Menu Item</button>
+                </div>
+            </div>
+            
+            <!-- Restaurant Actions -->
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <div class="action-buttons">
+                    <button class="btn-danger" onclick="removeEntity('${entityId}')">Remove Restaurant</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('stores-container').insertAdjacentHTML('beforeend', entityHtml);
+    
+    // Initialize entity data
+    entityData.entities.push({
+        id: entityId,
+        name: '',
+        location: '',
+        cuisine: ''
+    });
+    
+    // Initialize transactions and inventory for this entity
+    entityData.transactions[entityId] = [];
+    entityData.inventory[entityId] = [];
+    transactionCounter[entityId] = 0;
+    inventoryCounter[entityId] = 0;
+}
+
+// Custom Schema Functions
+function addCustomEntity() {
+    entityCounter++;
+    const entityId = `entity-${entityCounter}`;
+    
+    const entityHtml = `
+        <div class="enhanced-card store-card" id="${entityId}">
+            <div class="subsection-header">Custom Entity ${entityCounter}</div>
+            
+            <!-- Custom Entity Details -->
+            <div class="form-group">
+                <label class="form-label">Entity Name</label>
+                <input type="text" class="form-input" placeholder="Enter entity name" 
+                       onchange="updateEntityData('${entityId}', 'name', this.value)">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="comment-textarea" placeholder="Describe this entity..."
+                          onchange="updateEntityData('${entityId}', 'description', this.value)"></textarea>
+            </div>
+            
+            <!-- Custom Transactions Section -->
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <div class="subsection-header">📋 Custom Transactions</div>
+                <div id="transactions-${entityId}">
+                    <!-- Custom transactions will be added here -->
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="addCustomTransaction('${entityId}')">Add Transaction</button>
+                </div>
+            </div>
+            
+            <!-- Custom Data Section -->
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <div class="subsection-header">📊 Custom Data</div>
+                <div id="inventory-${entityId}">
+                    <!-- Custom data will be added here -->
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-secondary" onclick="addCustomData('${entityId}')">Add Data Entry</button>
+                </div>
+            </div>
+            
+            <!-- Entity Actions -->
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <div class="action-buttons">
+                    <button class="btn-danger" onclick="removeEntity('${entityId}')">Remove Entity</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('stores-container').insertAdjacentHTML('beforeend', entityHtml);
+    
+    // Initialize entity data
+    entityData.entities.push({
+        id: entityId,
+        name: '',
+        description: ''
+    });
+    
+    // Initialize transactions and inventory for this entity
+    entityData.transactions[entityId] = [];
+    entityData.inventory[entityId] = [];
+    transactionCounter[entityId] = 0;
+    inventoryCounter[entityId] = 0;
+}
+
+// Generic entity functions
+function updateEntityData(entityId, field, value) {
+    const entity = entityData.entities.find(e => e.id === entityId);
+    if (entity) {
+        entity[field] = value;
+    }
+}
+
+function removeEntity(entityId) {
+    // Remove from DOM
+    document.getElementById(entityId).remove();
+    
+    // Remove from data
+    entityData.entities = entityData.entities.filter(entity => entity.id !== entityId);
+    delete entityData.transactions[entityId];
+    delete entityData.inventory[entityId];
+    delete transactionCounter[entityId];
+    delete inventoryCounter[entityId];
+}
+
+// Placeholder functions for restaurant and custom schemas
+function addReview(entityId) {
+    alert('Review functionality will be implemented based on restaurant schema');
+}
+
+function addMenuItem(entityId) {
+    alert('Menu item functionality will be implemented based on restaurant schema');
+}
+
+function addCustomTransaction(entityId) {
+    alert('Custom transaction functionality will be implemented based on custom schema');
+}
+
+function addCustomData(entityId) {
+    alert('Custom data functionality will be implemented based on custom schema');
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Enhanced Bike Store Management System loaded');
+    
+    // Add some sample data for demonstration
+    setTimeout(() => {
+        if (storeData.stores.length === 0) {
+            // Add a sample store for demo
+            addStore();
+            document.querySelector('#store-1 input[placeholder="Enter store name"]').value = 'Downtown Bikes';
+            document.querySelector('#store-1 input[placeholder="Enter location"]').value = 'Downtown District';
+            updateStoreData('store-1', 'name', 'Downtown Bikes');
+            updateStoreData('store-1', 'location', 'Downtown District');
+        }
+    }, 500);
+});
+</script>
+{% endblock %}

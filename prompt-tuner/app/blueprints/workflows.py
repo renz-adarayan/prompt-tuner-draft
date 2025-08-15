@@ -18,6 +18,11 @@ def dynamic_workflows():
     """Dynamic schema-driven workflows interface"""
     return render_template("workflows/dynamic.html")
 
+@workflows_bp.route("/enhanced")
+def enhanced_workflows():
+    """Enhanced bike store management interface"""
+    return render_template("workflows/enhanced.html")
+
 @workflows_bp.route("/api/list")
 def get_workflows():
     """Get list of workflows from API"""
