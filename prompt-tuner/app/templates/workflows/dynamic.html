@@ -181,6 +181,40 @@
         background-color: #0056b3;
     }
 
+    /* Plus Icon Button */
+    .btn-plus {
+        background-color: var(--primary-blue);
+        border: none;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 0.5rem;
+        line-height: 1;
+    }
+
+    .btn-plus:hover {
+        background-color: #0056b3;
+        transform: scale(1.1);
+    }
+
+    /* Section Header with Plus */
+    .section-header-with-plus {
+        display: flex;
+        align-items: center;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
     .btn-danger {
         background-color: var(--danger-red);
         border: none;
@@ -502,6 +536,32 @@ let fieldCache = {}; // Store field definitions for array items
 // API Configuration
 const API_BASE_URL = 'http://localhost:8000/api/v1/custom-workflows/schema';
 
+// Utility function to clean up display names
+function cleanDisplayName(name) {
+    if (!name) return '';
+    
+    // Remove RootModel_ prefix
+    let cleaned = name.replace(/^RootModel_/i, '');
+    
+    // Convert underscores to spaces
+    cleaned = cleaned.replace(/_/g, ' ');
+    
+    // Convert to title case
+    cleaned = cleaned.replace(/\b\w/g, l => l.toUpperCase());
+    
+    return cleaned;
+}
+
+// Get user-friendly schema title
+function getSchemaTitle(schema, workflowName) {
+    if (schema.title && schema.title !== 'RootModel') {
+        return schema.title;
+    }
+    
+    // Generate title from workflow name
+    return workflowName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
 // API Functions
 async function fetchSchema(workflowName) {
     if (schemaCache[workflowName]) {
@@ -729,10 +789,11 @@ async function generateSchemaTiles() {
             const rootModel = schema.schemas.RootModel;
             const icon = schemaIcons[workflowName] || '⚙️';
             
+            const schemaTitle = getSchemaTitle(rootModel, workflowName);
             tilesHtml += `
                 <div class="schema-tile" id="${workflowName}-schema" onclick="selectSchema('${workflowName}', this)">
                     <div class="schema-icon">${icon}</div>
-                    <div class="schema-title">${rootModel.title || workflowName.replace('_', ' ')}</div>
+                    <div class="schema-title">${schemaTitle}</div>
                     <div class="schema-description">${rootModel.description || `Dynamic ${workflowName.replace('_', ' ')} workflow`}</div>
                 </div>
             `;
@@ -780,8 +841,9 @@ async function loadSchemaForm(schemaName) {
         document.getElementById('form-header').style.display = 'block';
         document.getElementById('form-actions').style.display = 'block';
         
-        // Update header
-        document.getElementById('form-header').textContent = rootModel.title || schemaName.replace('_', ' ');
+        // Update header with cleaned title
+        const formTitle = getSchemaTitle(rootModel, schemaName);
+        document.getElementById('form-header').textContent = formTitle;
         
         // Generate dynamic form
         const formHtml = generateFormFromSchema(rootModel, schema.schemas);
@@ -789,6 +851,9 @@ async function loadSchemaForm(schemaName) {
         
         // Initialize form data
         initializeFormData(rootModel);
+        
+        // Auto-add first array item for each main array field
+        await autoAddFirstArrayItems(rootModel);
         
     } catch (error) {
         console.error('Failed to load schema form:', error);
@@ -800,6 +865,20 @@ async function loadSchemaForm(schemaName) {
                 </div>
             </div>
         `;
+    }
+}
+
+async function autoAddFirstArrayItems(rootModel) {
+    if (!rootModel.properties) return;
+    
+    // Find all array fields and automatically add the first item
+    for (const [fieldName, field] of Object.entries(rootModel.properties)) {
+        if (field.type === 'array' && field.ui_component === 'array') {
+            // Add a small delay to ensure DOM is ready
+            setTimeout(async () => {
+                await addArrayItemByName(fieldName);
+            }, 100);
+        }
     }
 }
 
@@ -868,8 +947,6 @@ function generateFieldHtml(fieldName, field, allSchemas) {
 
 function generateArrayField(fieldName, field, allSchemas) {
     const displayName = field.display_name || field.title || fieldName;
-    const arrayConfig = field.array_config || {};
-    const addButtonText = arrayConfig.add_button_text || `Add ${displayName}`;
     
     // Store field definition in cache for later use
     const fieldKey = `${currentSchema}_${fieldName}`;
@@ -877,12 +954,12 @@ function generateArrayField(fieldName, field, allSchemas) {
     
     return `
         <div class="enhanced-card">
-            <div class="subsection-header">${displayName}</div>
+            <div class="section-header-with-plus">
+                <span>${displayName}</span>
+                <button class="btn-plus" onclick="addArrayItemByName('${fieldName}')" title="Add ${displayName}">+</button>
+            </div>
             <div id="array-${fieldName}" class="array-container">
                 <!-- Array items will be added here -->
-            </div>
-            <div class="action-buttons">
-                <button class="btn-primary" onclick="addArrayItemByName('${fieldName}')">${addButtonText}</button>
             </div>
         </div>
     `;
@@ -1006,7 +1083,12 @@ async function addArrayItem(fieldName, field) {
 
 function generateArrayItemHtml(fieldName, itemIndex, itemSchema, allSchemas) {
     const itemId = `${fieldName}-item-${itemIndex}`;
-    const displayName = itemSchema.title || itemSchema.model_name || `Item ${itemIndex + 1}`;
+    
+    // Clean up display name - remove RootModel prefix and use proper formatting
+    let displayName = itemSchema.title || itemSchema.model_name || `Item ${itemIndex + 1}`;
+    if (displayName !== `Item ${itemIndex + 1}`) {
+        displayName = cleanDisplayName(displayName);
+    }
     
     let fieldsHtml = '';
     
@@ -1115,8 +1197,6 @@ function generateArrayItemFieldHtml(fieldName, itemIndex, propName, prop, allSch
 
 function generateNestedArrayField(parentFieldName, parentIndex, fieldName, field, allSchemas) {
     const displayName = field.display_name || field.title || fieldName;
-    const arrayConfig = field.array_config || {};
-    const addButtonText = arrayConfig.add_button_text || `Add ${displayName.slice(0, -1)}`; // Remove 's' from plural
     const nestedFieldId = `${parentFieldName}-${parentIndex}-${fieldName}`;
     
     // Store field definition in cache for nested arrays
@@ -1125,12 +1205,12 @@ function generateNestedArrayField(parentFieldName, parentIndex, fieldName, field
     
     return `
         <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-            <div class="subsection-header">${displayName}</div>
+            <div class="section-header-with-plus">
+                <span>${displayName}</span>
+                <button class="btn-plus" onclick="addNestedArrayItem('${nestedFieldId}')" title="Add ${displayName}">+</button>
+            </div>
             <div id="array-${nestedFieldId}" class="array-container">
                 <!-- Nested array items will be added here -->
-            </div>
-            <div class="action-buttons">
-                <button class="btn-primary" onclick="addNestedArrayItem('${nestedFieldId}')">${addButtonText}</button>
             </div>
         </div>
     `;
