@@ -80,19 +80,7 @@
     .enhanced-card:hover {
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-
-    .store-card {
-        border-left: 4px solid var(--primary-blue);
-    }
-
-    .sales-card {
-        border-left: 4px solid var(--primary-blue);
-    }
-
-    .stock-card {
-        border-left: 4px solid var(--primary-blue);
-    }
-
+    
     /* Form Elements */
     .form-group {
         margin-bottom: 1.5rem;
@@ -124,15 +112,16 @@
         color: #adb5bd;
     }
 
-    /* Bike Type Selection Cards */
-    .bike-type-selection {
+
+    /* Generic Option Selection Cards */
+    .option-selection {
         display: grid;
         grid-template-columns: 1fr;
         gap: 0.75rem;
         margin-bottom: 1.5rem;
     }
 
-    .bike-type-card {
+    .option-card {
         border: 2px solid var(--border-color);
         border-radius: 8px;
         padding: 1rem;
@@ -144,23 +133,23 @@
         background: white;
     }
 
-    .bike-type-card:hover {
+    .option-card:hover {
         border-color: var(--primary-blue);
         background-color: var(--light-blue);
     }
 
-    .bike-type-card.selected {
+    .option-card.selected {
         border-color: var(--primary-blue);
         background-color: var(--light-blue);
     }
 
-    .bike-type-icon {
+    .option-icon {
         font-size: 1.5rem;
         width: 2rem;
         text-align: center;
     }
 
-    .bike-type-name {
+    .option-name {
         font-weight: 500;
         color: #333;
     }
@@ -472,7 +461,6 @@
 
 {% block content %}
 <div class="enhanced-container">
-    <!-- Page Header -->
     <div class="page-header" style="margin-bottom: 2rem;">
         <h1 style="font-size: 2rem; font-weight: 600; color: #333; margin-bottom: 0.5rem;">
             Dynamic Workflows
@@ -482,24 +470,19 @@
         </p>
     </div>
 
-    <!-- Schema Selection -->
     <div class="section-header">Schema Selection</div>
     <div class="schema-selector" id="schema-selector">
-        <!-- Schema tiles will be dynamically generated here -->
-    </div>
+        </div>
 
-    <!-- Dynamic Form Interface -->
     <div class="section-header" id="form-header" style="display: none;">Dynamic Form</div>
     
     <div id="dynamic-form-container">
-        <!-- Dynamic forms will be generated here based on selected schema -->
-    </div>
+        </div>
     
     <div class="action-buttons" id="form-actions" style="display: none;">
         <button class="btn-primary" id="add-entity-btn" onclick="addEntity()">Add Entity</button>
     </div>
 
-    <!-- Process Data Section -->
     <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--border-color);">
         <div class="action-buttons">
             <button class="btn-primary" onclick="processData()" style="font-size: 1.1rem; padding: 1rem 2rem;">
@@ -514,12 +497,10 @@
         </div>
     </div>
 
-    <!-- Results Section -->
     <div id="results-section" style="margin-top: 2rem; display: none;">
         <div class="section-header">Processing Results</div>
         <div id="results-container" class="enhanced-card">
-            <!-- Results will be displayed here -->
-        </div>
+            </div>
     </div>
 </div>
 {% endblock %}
@@ -530,25 +511,42 @@
 let formData = {};
 let currentSchema = null;
 let schemaCache = {};
-let availableWorkflows = ['bike_insights', 'restaurant_recommender'];
+let availableWorkflows = [];
 let fieldCache = {}; // Store field definitions for array items
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000/api/v1/custom-workflows/schema';
+const API_BASE_URL = 'http://localhost:8000/api/v1/custom-workflows';
+
+// Fetch available workflows on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Dynamic Workflows System loaded');
+    await fetchAvailableWorkflows();
+    await generateSchemaTiles();
+    console.log('Schema tiles generated successfully');
+});
+
+async function fetchAvailableWorkflows() {
+    try {
+        console.log('[fetchAvailableWorkflows] Fetching available workflows from API...');
+        const response = await fetch(`${API_BASE_URL}/list`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        availableWorkflows = data.custom_workflows || [];
+        console.log('[fetchAvailableWorkflows] availableWorkflows:', availableWorkflows);
+    } catch (error) {
+        console.error('[fetchAvailableWorkflows] Failed to fetch available workflows:', error);
+        availableWorkflows = []; // Default to an empty array if the fetch fails
+    }
+}
 
 // Utility function to clean up display names
 function cleanDisplayName(name) {
     if (!name) return '';
-    
-    // Remove RootModel_ prefix
     let cleaned = name.replace(/^RootModel_/i, '');
-    
-    // Convert underscores to spaces
     cleaned = cleaned.replace(/_/g, ' ');
-    
-    // Convert to title case
     cleaned = cleaned.replace(/\b\w/g, l => l.toUpperCase());
-    
     return cleaned;
 }
 
@@ -557,8 +555,6 @@ function getSchemaTitle(schema, workflowName) {
     if (schema.title && schema.title !== 'RootModel') {
         return schema.title;
     }
-    
-    // Generate title from workflow name
     return workflowName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
@@ -567,9 +563,8 @@ async function fetchSchema(workflowName) {
     if (schemaCache[workflowName]) {
         return schemaCache[workflowName];
     }
-    
     try {
-        const response = await fetch(`${API_BASE_URL}/${workflowName}/alpine/`);
+        const response = await fetch(`${API_BASE_URL}/schema/${workflowName}/`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -578,223 +573,31 @@ async function fetchSchema(workflowName) {
         return schema;
     } catch (error) {
         console.error(`Failed to fetch schema for ${workflowName}:`, error);
-        // Fallback to local schema if available
-        return await fetchFallbackSchema(workflowName);
+        throw new Error(`Schema fetch failed: ${workflowName}`);
     }
-}
-
-async function fetchFallbackSchema(workflowName) {
-    // Fallback to local schemas if API fails
-    const fallbackSchemas = {
-        'bike_insights': {
-            workflow_name: 'bike_insights',
-            schemas: {
-                RootModel: {
-                    model_name: 'RootModel',
-                    title: 'Bike Store Management',
-                    type: 'object',
-                    properties: {
-                        stores: {
-                            title: 'Stores',
-                            type: 'array',
-                            ui_component: 'array',
-                            display_name: 'Stores',
-                            items: {
-                                $ref: '#/$defs/RootModel_Store'
-                            },
-                            array_config: {
-                                add_button_text: 'Add Store',
-                                remove_button_text: 'Remove Store'
-                            }
-                        }
-                    }
-                },
-                RootModel_Store: {
-                    model_name: 'RootModel_Store',
-                    title: 'RootModel_Store',
-                    type: 'object',
-                    properties: {
-                        name: {
-                            title: 'Name',
-                            type: 'string',
-                            ui_component: 'text_input',
-                            display_name: 'Name'
-                        },
-                        location: {
-                            title: 'Location',
-                            type: 'string',
-                            ui_component: 'text_input',
-                            display_name: 'Location'
-                        },
-                        bike_sales: {
-                            title: 'Bike Sales',
-                            type: 'array',
-                            ui_component: 'array',
-                            display_name: 'Bike Sales',
-                            items: {
-                                $ref: '#/$defs/RootModel_BikeSale'
-                            },
-                            array_config: {
-                                add_button_text: 'Add Bike Sale',
-                                remove_button_text: 'Remove Sale'
-                            }
-                        },
-                        bike_stock: {
-                            title: 'Bike Stock',
-                            type: 'array',
-                            ui_component: 'array',
-                            display_name: 'Bike Stock',
-                            items: {
-                                $ref: '#/$defs/RootModel_BikeStock'
-                            },
-                            array_config: {
-                                add_button_text: 'Add Bike Stock',
-                                remove_button_text: 'Remove Stock'
-                            }
-                        }
-                    },
-                    ui_metadata: {
-                        display_order: ['name', 'location', 'bike_sales', 'bike_stock']
-                    }
-                },
-                RootModel_BikeStock: {
-                    model_name: 'RootModel_BikeStock',
-                    title: 'RootModel_BikeStock',
-                    type: 'object',
-                    properties: {
-                        bike: {
-                            title: 'Bike',
-                            anyOf: [
-                                { $ref: '#/$defs/RootModel_MountainBike' },
-                                { $ref: '#/$defs/RootModel_RoadBike' },
-                                { $ref: '#/$defs/RootModel_ElectricBike' }
-                            ],
-                            ui_component: 'union_select',
-                            display_name: 'Bike Type'
-                        },
-                        quantity: {
-                            title: 'Quantity',
-                            type: 'integer',
-                            ui_component: 'number_input',
-                            display_name: 'Quantity'
-                        }
-                    },
-                    ui_metadata: {
-                        display_order: ['bike', 'quantity']
-                    }
-                },
-                RootModel_BikeSale: {
-                    model_name: 'RootModel_BikeSale',
-                    title: 'RootModel_BikeSale',
-                    type: 'object',
-                    properties: {
-                        product_code: {
-                            title: 'Product Code',
-                            type: 'string',
-                            ui_component: 'text_input',
-                            display_name: 'Product Code'
-                        },
-                        quantity_sold: {
-                            title: 'Quantity Sold',
-                            type: 'integer',
-                            ui_component: 'number_input',
-                            display_name: 'Quantity Sold'
-                        },
-                        sale_date: {
-                            title: 'Sale Date',
-                            type: 'string',
-                            ui_component: 'text_input',
-                            display_name: 'Sale Date'
-                        }
-                    },
-                    ui_metadata: {
-                        display_order: ['product_code', 'quantity_sold', 'sale_date']
-                    }
-                },
-                RootModel_MountainBike: {
-                    model_name: 'RootModel_MountainBike',
-                    title: 'Mountain Bike',
-                    type: 'object',
-                    properties: {
-                        brand: { title: 'Brand', type: 'string', ui_component: 'text_input', display_name: 'Brand' },
-                        model: { title: 'Model', type: 'string', ui_component: 'text_input', display_name: 'Model' },
-                        price: { title: 'Price', type: 'number', ui_component: 'number_input', display_name: 'Price' }
-                    }
-                },
-                RootModel_RoadBike: {
-                    model_name: 'RootModel_RoadBike',
-                    title: 'Road Bike',
-                    type: 'object',
-                    properties: {
-                        brand: { title: 'Brand', type: 'string', ui_component: 'text_input', display_name: 'Brand' },
-                        model: { title: 'Model', type: 'string', ui_component: 'text_input', display_name: 'Model' },
-                        price: { title: 'Price', type: 'number', ui_component: 'number_input', display_name: 'Price' }
-                    }
-                },
-                RootModel_ElectricBike: {
-                    model_name: 'RootModel_ElectricBike',
-                    title: 'Electric Bike',
-                    type: 'object',
-                    properties: {
-                        brand: { title: 'Brand', type: 'string', ui_component: 'text_input', display_name: 'Brand' },
-                        model: { title: 'Model', type: 'string', ui_component: 'text_input', display_name: 'Model' },
-                        price: { title: 'Price', type: 'number', ui_component: 'number_input', display_name: 'Price' },
-                        battery_capacity: { title: 'Battery Capacity', type: 'number', ui_component: 'number_input', display_name: 'Battery Capacity (kWh)' }
-                    }
-                }
-            }
-        },
-        'restaurant_recommender': {
-            workflow_name: 'restaurant_recommender',
-            schemas: {
-                RootModel: {
-                    model_name: 'RootModel',
-                    title: 'Restaurant Recommender',
-                    type: 'object',
-                    properties: {
-                        restaurants: {
-                            title: 'Restaurants',
-                            type: 'array',
-                            ui_component: 'array',
-                            display_name: 'Restaurants',
-                            array_config: {
-                                add_button_text: 'Add Restaurant',
-                                remove_button_text: 'Remove Restaurant'
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
-    
-    return fallbackSchemas[workflowName] || null;
 }
 
 // Dynamic Schema Tile Generation
 async function generateSchemaTiles() {
     const selectorContainer = document.getElementById('schema-selector');
     selectorContainer.innerHTML = '<div class="loading">Loading schemas...</div>';
-    
-    const schemaIcons = {
-        'bike_insights': '🚴',
-        'restaurant_recommender': '🍽️'
-    };
-    
+
     let tilesHtml = '';
-    
+    if (availableWorkflows.length === 0) {
+        selectorContainer.innerHTML = '<div class="empty-state">No workflows found.</div>';
+        return;
+    }
+
     for (const workflowName of availableWorkflows) {
         try {
             const schema = await fetchSchema(workflowName);
             const rootModel = schema.schemas.RootModel;
-            const icon = schemaIcons[workflowName] || '⚙️';
-            
             const schemaTitle = getSchemaTitle(rootModel, workflowName);
             tilesHtml += `
                 <div class="schema-tile" id="${workflowName}-schema" onclick="selectSchema('${workflowName}', this)">
-                    <div class="schema-icon">${icon}</div>
+                    <div class="schema-icon">⚙️</div>
                     <div class="schema-title">${schemaTitle}</div>
-                    <div class="schema-description">${rootModel.description || `Dynamic ${workflowName.replace('_', ' ')} workflow`}</div>
+                    <div class="schema-description">${rootModel.description || `Dynamic ${workflowName.replace(/_/g, ' ')} workflow`}</div>
                 </div>
             `;
         } catch (error) {
@@ -802,33 +605,21 @@ async function generateSchemaTiles() {
             tilesHtml += `
                 <div class="schema-tile disabled">
                     <div class="schema-icon">❌</div>
-                    <div class="schema-title">${workflowName.replace('_', ' ')}</div>
+                    <div class="schema-title">${workflowName.replace(/_/g, ' ')}</div>
                     <div class="schema-description">Failed to load schema</div>
                 </div>
             `;
         }
     }
-    
     selectorContainer.innerHTML = tilesHtml;
 }
 
 // Schema Selection Function
 async function selectSchema(schemaName, element) {
-    // Remove active class from all tiles
-    document.querySelectorAll('.schema-tile').forEach(tile => {
-        tile.classList.remove('active');
-    });
-    
-    // Add active class to selected tile
+    document.querySelectorAll('.schema-tile').forEach(tile => tile.classList.remove('active'));
     element.classList.add('active');
-    
-    // Update current schema
     currentSchema = schemaName;
-    
-    // Load and display the schema-driven form
     await loadSchemaForm(schemaName);
-    
-    // Clear existing data when switching schemas
     resetFormData();
 }
 
@@ -837,24 +628,17 @@ async function loadSchemaForm(schemaName) {
         const schema = await fetchSchema(schemaName);
         const rootModel = schema.schemas.RootModel;
         
-        // Show form sections
         document.getElementById('form-header').style.display = 'block';
         document.getElementById('form-actions').style.display = 'block';
         
-        // Update header with cleaned title
         const formTitle = getSchemaTitle(rootModel, schemaName);
         document.getElementById('form-header').textContent = formTitle;
         
-        // Generate dynamic form
         const formHtml = generateFormFromSchema(rootModel, schema.schemas);
         document.getElementById('dynamic-form-container').innerHTML = formHtml;
         
-        // Initialize form data
         initializeFormData(rootModel);
-        
-        // Auto-add first array item for each main array field
         await autoAddFirstArrayItems(rootModel);
-        
     } catch (error) {
         console.error('Failed to load schema form:', error);
         document.getElementById('dynamic-form-container').innerHTML = `
@@ -870,11 +654,8 @@ async function loadSchemaForm(schemaName) {
 
 async function autoAddFirstArrayItems(rootModel) {
     if (!rootModel.properties) return;
-    
-    // Find all array fields and automatically add the first item
     for (const [fieldName, field] of Object.entries(rootModel.properties)) {
         if (field.type === 'array' && field.ui_component === 'array') {
-            // Add a small delay to ensure DOM is ready
             setTimeout(async () => {
                 await addArrayItemByName(fieldName);
             }, 100);
@@ -884,17 +665,14 @@ async function autoAddFirstArrayItems(rootModel) {
 
 function generateFormFromSchema(model, allSchemas) {
     if (!model.properties) return '';
-    
     let formHtml = '';
     const displayOrder = model.ui_metadata?.display_order || Object.keys(model.properties);
-    
     for (const fieldName of displayOrder) {
         const field = model.properties[fieldName];
-        if (!field) continue;
-        
-        formHtml += generateFieldHtml(fieldName, field, allSchemas);
+        if (field) {
+            formHtml += generateFieldHtml(fieldName, field, allSchemas);
+        }
     }
-    
     return formHtml;
 }
 
@@ -912,27 +690,21 @@ function generateFieldHtml(fieldName, field, allSchemas) {
                            onchange="updateFormData('${fieldName}', this.value)">
                 </div>
             `;
-            
         case 'number_input':
-            const numberConfig = field.number_config || {};
+            const numConf = field.number_config || {};
             return `
                 <div class="form-group">
                     <label class="form-label">${displayName}</label>
                     <input type="number" class="form-input" id="${fieldId}"
-                           min="${numberConfig.min || ''}" 
-                           max="${numberConfig.max || ''}"
-                           step="${numberConfig.step || 1}"
+                           min="${numConf.min || ''}" max="${numConf.max || ''}" step="${numConf.step || 1}"
                            placeholder="Enter ${displayName.toLowerCase()}"
                            onchange="updateFormData('${fieldName}', parseFloat(this.value))">
                 </div>
             `;
-            
         case 'array':
             return generateArrayField(fieldName, field, allSchemas);
-            
         case 'union_select':
             return generateUnionSelectField(fieldName, field, allSchemas);
-            
         default:
             return `
                 <div class="form-group">
@@ -947,20 +719,14 @@ function generateFieldHtml(fieldName, field, allSchemas) {
 
 function generateArrayField(fieldName, field, allSchemas) {
     const displayName = field.display_name || field.title || fieldName;
-    
-    // Store field definition in cache for later use
-    const fieldKey = `${currentSchema}_${fieldName}`;
-    fieldCache[fieldKey] = field;
-    
+    fieldCache[`${currentSchema}_${fieldName}`] = field;
     return `
         <div class="enhanced-card">
             <div class="section-header-with-plus">
                 <span>${displayName}</span>
                 <button class="btn-plus" onclick="addArrayItemByName('${fieldName}')" title="Add ${displayName}">+</button>
             </div>
-            <div id="array-${fieldName}" class="array-container">
-                <!-- Array items will be added here -->
-            </div>
+            <div id="array-${fieldName}" class="array-container"></div>
         </div>
     `;
 }
@@ -968,46 +734,29 @@ function generateArrayField(fieldName, field, allSchemas) {
 function generateUnionSelectField(fieldName, field, allSchemas) {
     const displayName = field.display_name || field.title || fieldName;
     const unionOptions = field.union_options || [];
-    
-    let optionsHtml = '';
-    unionOptions.forEach(option => {
-        optionsHtml += `
-            <div class="bike-type-card" onclick="selectUnionOption('${fieldName}', '${option.value}', this)">
-                <span class="bike-type-icon">${getUnionIcon(option.label)}</span>
-                <span class="bike-type-name">${option.label}</span>
-            </div>
-        `;
-    });
-    
+    let optionsHtml = unionOptions.map(option => `
+        <div class="option-card" onclick="selectUnionOption('${fieldName}', '${option.value}', this)">
+            <span class="option-icon">${getUnionIcon(option.label)}</span>
+            <span class="option-name">${option.label}</span>
+        </div>
+    `).join('');
+
     return `
         <div class="form-group">
             <label class="form-label">${displayName}</label>
-            <div class="bike-type-selection" id="union-${fieldName}">
-                ${optionsHtml}
-            </div>
+            <div class="option-selection" id="union-${fieldName}">${optionsHtml}</div>
         </div>
     `;
 }
 
 function getUnionIcon(label) {
-    const iconMap = {
-        'RootModel_MountainBike': '🏔️',
-        'RootModel_RoadBike': '🏁',
-        'RootModel_ElectricBike': '⚡'
-    };
-    return iconMap[label] || '🔧';
+    // Returns a generic icon for any label
+    return '🔧';
 }
 
 function selectUnionOption(fieldName, value, element) {
-    // Remove selected class from siblings
-    element.parentNode.querySelectorAll('.bike-type-card').forEach(card => {
-        card.classList.remove('selected');
-    });
-    
-    // Add selected class to clicked element
+    element.parentNode.querySelectorAll('.option-card').forEach(card => card.classList.remove('selected'));
     element.classList.add('selected');
-    
-    // Update form data
     updateFormData(fieldName, value);
 }
 
@@ -1015,13 +764,11 @@ function selectUnionOption(fieldName, value, element) {
 async function addArrayItemByName(fieldName) {
     const fieldKey = `${currentSchema}_${fieldName}`;
     const field = fieldCache[fieldKey];
-    
     if (!field) {
         console.error(`Field definition not found in cache for: ${fieldKey}`);
         alert('Field definition not found. Please try refreshing the page.');
         return;
     }
-    
     return await addArrayItem(fieldName, field);
 }
 
@@ -1029,77 +776,48 @@ async function addArrayItem(fieldName, field) {
     try {
         const schema = await fetchSchema(currentSchema);
         const arrayContainer = document.getElementById(`array-${fieldName}`);
-        
-        if (!arrayContainer) {
-            console.error(`Array container not found for field: ${fieldName}`);
-            return;
-        }
-        
-        // Initialize array in form data if it doesn't exist
-        if (!formData[currentSchema]) {
-            formData[currentSchema] = {};
-        }
-        if (!formData[currentSchema][fieldName]) {
-            formData[currentSchema][fieldName] = [];
-        }
+        if (!arrayContainer) return;
+
+        if (!formData[currentSchema]) formData[currentSchema] = {};
+        if (!formData[currentSchema][fieldName]) formData[currentSchema][fieldName] = [];
         
         const itemIndex = formData[currentSchema][fieldName].length;
-        const itemId = `${fieldName}-item-${itemIndex}`;
-        
-        // Get the schema for the array item
-        let itemSchema = null;
-        if (field.items && field.items.$ref) {
-            // Parse the $ref to get the schema name
-            const schemaName = field.items.$ref.replace('#/$defs/', '').replace('#/definitions/', '');
-            itemSchema = schema.schemas[schemaName] || schema.schemas.RootModel?.definitions?.[schemaName];
+        const ref = field.items?.$ref;
+        if (!ref) {
+            console.error('Array item schema reference ($ref) not found.');
+            return;
         }
-        
+
+        const schemaName = ref.split('/').pop();
+        const itemSchema = schema.schemas[schemaName] || schema.schemas.RootModel?.definitions?.[schemaName];
         if (!itemSchema) {
-            console.error(`Could not find schema for array item: ${field.items?.$ref}`);
-            alert('Could not find schema definition for this array item');
+            console.error(`Could not find schema for array item: ${ref}`);
             return;
         }
         
-        // Generate form HTML for the array item
         const itemHtml = generateArrayItemHtml(fieldName, itemIndex, itemSchema, schema.schemas);
-        
-        // Add the item to the container
         arrayContainer.insertAdjacentHTML('beforeend', itemHtml);
         
-        // Initialize the item data
-        const itemData = {};
-        if (itemSchema.default_values) {
-            Object.assign(itemData, itemSchema.default_values);
-        }
+        const itemData = { ...(itemSchema.default_values || {}) };
         formData[currentSchema][fieldName].push(itemData);
-        
         console.log(`Added array item for ${fieldName}:`, itemData);
-        
     } catch (error) {
         console.error('Failed to add array item:', error);
-        alert('Failed to add array item. Please try again.');
     }
 }
 
 function generateArrayItemHtml(fieldName, itemIndex, itemSchema, allSchemas) {
     const itemId = `${fieldName}-item-${itemIndex}`;
-    
-    // Clean up display name - remove RootModel prefix and use proper formatting
-    let displayName = itemSchema.title || itemSchema.model_name || `Item ${itemIndex + 1}`;
-    if (displayName !== `Item ${itemIndex + 1}`) {
-        displayName = cleanDisplayName(displayName);
-    }
+    let displayName = cleanDisplayName(itemSchema.title || itemSchema.model_name) || `Item ${itemIndex + 1}`;
     
     let fieldsHtml = '';
-    
     if (itemSchema.properties) {
         const displayOrder = itemSchema.ui_metadata?.display_order || Object.keys(itemSchema.properties);
-        
         for (const propName of displayOrder) {
             const prop = itemSchema.properties[propName];
-            if (!prop) continue;
-            
-            fieldsHtml += generateArrayItemFieldHtml(fieldName, itemIndex, propName, prop, allSchemas);
+            if (prop) {
+                fieldsHtml += generateArrayItemFieldHtml(fieldName, itemIndex, propName, prop, allSchemas);
+            }
         }
     }
     
@@ -1118,100 +836,44 @@ function generateArrayItemFieldHtml(fieldName, itemIndex, propName, prop, allSch
     const displayName = prop.display_name || prop.title || propName;
     const fieldId = `${fieldName}-${itemIndex}-${propName}`;
     
-    // Check if this is a union type (anyOf) - this is key for bike type selection
     if (prop.anyOf || prop.union_options || prop.ui_component === 'union_select') {
         return generateArrayItemUnionField(fieldName, itemIndex, propName, prop, allSchemas);
     }
-    
-    // Check if this is an array field - handle nested arrays
-    if (prop.type === 'array' && prop.ui_component === 'array') {
+    if (prop.type === 'array' || prop.ui_component === 'array') {
         return generateNestedArrayField(fieldName, itemIndex, propName, prop, allSchemas);
     }
-    
-    switch (prop.ui_component) {
-        case 'text_input':
-            return `
+
+    const onchange = `onchange="updateArrayItemData('${fieldName}', ${itemIndex}, '${propName}', this.value)"`;
+    const onchangeFloat = `onchange="updateArrayItemData('${fieldName}', ${itemIndex}, '${propName}', parseFloat(this.value))"`;
+
+    switch (prop.type) {
+        case 'number':
+        case 'integer':
+             return `
                 <div class="form-group">
                     <label class="form-label">${displayName}</label>
-                    <input type="text" class="form-input" id="${fieldId}" 
-                           placeholder="Enter ${displayName.toLowerCase()}"
-                           onchange="updateArrayItemData('${fieldName}', ${itemIndex}, '${propName}', this.value)">
-                </div>
-            `;
-            
-        case 'number_input':
-            const numberConfig = prop.number_config || {};
-            return `
-                <div class="form-group">
-                    <label class="form-label">${displayName}</label>
-                    <input type="number" class="form-input" id="${fieldId}"
-                           min="${numberConfig.min || ''}" 
-                           max="${numberConfig.max || ''}"
-                           step="${numberConfig.step || 1}"
-                           placeholder="Enter ${displayName.toLowerCase()}"
-                           onchange="updateArrayItemData('${fieldName}', ${itemIndex}, '${propName}', parseFloat(this.value))">
-                </div>
-            `;
-            
-        case 'union_select':
-            return generateArrayItemUnionField(fieldName, itemIndex, propName, prop, allSchemas);
-            
-        case 'array':
-            return generateNestedArrayField(fieldName, itemIndex, propName, prop, allSchemas);
-            
+                    <input type="number" class="form-input" id="${fieldId}" placeholder="Enter ${displayName.toLowerCase()}" ${onchangeFloat}>
+                </div>`;
         default:
-            // Handle basic types
-            if (prop.type === 'string') {
-                return `
-                    <div class="form-group">
-                        <label class="form-label">${displayName}</label>
-                        <input type="text" class="form-input" id="${fieldId}"
-                               placeholder="Enter ${displayName.toLowerCase()}"
-                               onchange="updateArrayItemData('${fieldName}', ${itemIndex}, '${propName}', this.value)">
-                    </div>
-                `;
-            } else if (prop.type === 'number' || prop.type === 'integer') {
-                return `
-                    <div class="form-group">
-                        <label class="form-label">${displayName}</label>
-                        <input type="number" class="form-input" id="${fieldId}"
-                               placeholder="Enter ${displayName.toLowerCase()}"
-                               onchange="updateArrayItemData('${fieldName}', ${itemIndex}, '${propName}', parseFloat(this.value))">
-                    </div>
-                `;
-            } else if (prop.type === 'array') {
-                // Handle arrays without explicit ui_component
-                return generateNestedArrayField(fieldName, itemIndex, propName, prop, allSchemas);
-            } else {
-                return `
-                    <div class="form-group">
-                        <label class="form-label">${displayName}</label>
-                        <input type="text" class="form-input" id="${fieldId}"
-                               placeholder="Enter ${displayName.toLowerCase()}"
-                               onchange="updateArrayItemData('${fieldName}', ${itemIndex}, '${propName}', this.value)">
-                    </div>
-                `;
-            }
+            return `
+                <div class="form-group">
+                    <label class="form-label">${displayName}</label>
+                    <input type="text" class="form-input" id="${fieldId}" placeholder="Enter ${displayName.toLowerCase()}" ${onchange}>
+                </div>`;
     }
 }
 
 function generateNestedArrayField(parentFieldName, parentIndex, fieldName, field, allSchemas) {
     const displayName = field.display_name || field.title || fieldName;
     const nestedFieldId = `${parentFieldName}-${parentIndex}-${fieldName}`;
-    
-    // Store field definition in cache for nested arrays
-    const fieldKey = `${currentSchema}_${nestedFieldId}`;
-    fieldCache[fieldKey] = field;
-    
+    fieldCache[`${currentSchema}_${nestedFieldId}`] = field;
     return `
         <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
             <div class="section-header-with-plus">
                 <span>${displayName}</span>
                 <button class="btn-plus" onclick="addNestedArrayItem('${nestedFieldId}')" title="Add ${displayName}">+</button>
             </div>
-            <div id="array-${nestedFieldId}" class="array-container">
-                <!-- Nested array items will be added here -->
-            </div>
+            <div id="array-${nestedFieldId}" class="array-container"></div>
         </div>
     `;
 }
@@ -1219,13 +881,10 @@ function generateNestedArrayField(parentFieldName, parentIndex, fieldName, field
 async function addNestedArrayItem(nestedFieldId) {
     const fieldKey = `${currentSchema}_${nestedFieldId}`;
     const field = fieldCache[fieldKey];
-    
     if (!field) {
         console.error(`Nested field definition not found in cache for: ${fieldKey}`);
-        alert('Field definition not found. Please try refreshing the page.');
         return;
     }
-    
     return await addArrayItem(nestedFieldId, field);
 }
 
@@ -1233,575 +892,81 @@ function generateArrayItemUnionField(fieldName, itemIndex, propName, prop, allSc
     const displayName = prop.display_name || prop.title || propName;
     let unionOptions = prop.union_options || [];
     
-    // If no union_options provided, generate them from anyOf
     if (unionOptions.length === 0 && prop.anyOf) {
         unionOptions = prop.anyOf.map(option => {
-            if (option.$ref) {
-                const schemaName = option.$ref.replace('#/$defs/', '').replace('#/definitions/', '');
-                return {
-                    value: schemaName.toLowerCase().replace('rootmodel_', 'rootmodel_'),
-                    label: schemaName,
-                    schema_ref: option.$ref,
-                    discriminator: schemaName
-                };
-            }
-            return null;
+            if (!option.$ref) return null;
+            const schemaName = option.$ref.split('/').pop();
+            return {
+                value: schemaName.toLowerCase(),
+                label: cleanDisplayName(schemaName),
+                schema_ref: option.$ref,
+            };
         }).filter(Boolean);
     }
     
-    let optionsHtml = '';
-    unionOptions.forEach(option => {
-        optionsHtml += `
-            <div class="bike-type-card" onclick="selectArrayItemUnionOption('${fieldName}', ${itemIndex}, '${propName}', '${option.value}', this)">
-                <span class="bike-type-icon">${getUnionIcon(option.label)}</span>
-                <span class="bike-type-name">${option.label.replace('RootModel_', '').replace('_', ' ')}</span>
-            </div>
-        `;
-    });
-    
+    let optionsHtml = unionOptions.map(option => `
+        <div class="option-card" onclick="selectArrayItemUnionOption('${fieldName}', ${itemIndex}, '${propName}', '${option.value}', this)">
+            <span class="option-icon">${getUnionIcon(option.label)}</span>
+            <span class="option-name">${option.label}</span>
+        </div>
+    `).join('');
+
     return `
         <div class="form-group">
             <label class="form-label">${displayName}</label>
-            <div class="bike-type-selection" id="union-${fieldName}-${itemIndex}-${propName}">
-                ${optionsHtml}
-            </div>
+            <div class="option-selection">${optionsHtml}</div>
         </div>
     `;
 }
 
 function updateArrayItemData(fieldName, itemIndex, propName, value) {
-    if (!formData[currentSchema] || !formData[currentSchema][fieldName]) {
-        return;
-    }
-    
-    if (!formData[currentSchema][fieldName][itemIndex]) {
+    if (!formData[currentSchema]?.[fieldName]?.[itemIndex]) {
         formData[currentSchema][fieldName][itemIndex] = {};
     }
-    
     formData[currentSchema][fieldName][itemIndex][propName] = value;
     console.log(`Updated array item data:`, formData[currentSchema][fieldName][itemIndex]);
 }
 
 function selectArrayItemUnionOption(fieldName, itemIndex, propName, value, element) {
-    // Remove selected class from siblings
-    element.parentNode.querySelectorAll('.bike-type-card').forEach(card => {
-        card.classList.remove('selected');
-    });
-    
-    // Add selected class to clicked element
+    element.parentNode.querySelectorAll('.option-card').forEach(card => card.classList.remove('selected'));
     element.classList.add('selected');
-    
-    // Update form data
     updateArrayItemData(fieldName, itemIndex, propName, value);
 }
 
 function removeArrayItem(fieldName, itemIndex) {
     const itemId = `${fieldName}-item-${itemIndex}`;
-    const itemElement = document.getElementById(itemId);
-    
-    if (itemElement) {
-        itemElement.remove();
-    }
-    
-    // Remove from form data
-    if (formData[currentSchema] && formData[currentSchema][fieldName]) {
-        formData[currentSchema][fieldName].splice(itemIndex, 1);
-    }
-    
+    document.getElementById(itemId)?.remove();
+    formData[currentSchema]?.[fieldName]?.splice(itemIndex, 1);
     console.log(`Removed array item ${itemIndex} from ${fieldName}`);
 }
 
 function updateFormData(fieldName, value) {
-    if (!formData[currentSchema]) {
-        formData[currentSchema] = {};
-    }
+    if (!formData[currentSchema]) formData[currentSchema] = {};
     formData[currentSchema][fieldName] = value;
     console.log('Updated form data:', formData);
 }
 
 function initializeFormData(model) {
-    if (!formData[currentSchema]) {
-        formData[currentSchema] = {};
-    }
-    
-    // Initialize with default values from schema
+    if (!formData[currentSchema]) formData[currentSchema] = {};
     if (model.default_values) {
         Object.assign(formData[currentSchema], model.default_values);
     }
 }
 
 function resetFormData() {
-    if (currentSchema) {
-        formData[currentSchema] = {};
-    }
-    
-    // Clear form inputs
-    document.querySelectorAll('.form-input').forEach(input => {
-        input.value = '';
-    });
-    
-    // Clear selected union options
-    document.querySelectorAll('.bike-type-card.selected').forEach(card => {
-        card.classList.remove('selected');
-    });
+    if (currentSchema) formData[currentSchema] = {};
+    document.querySelectorAll('.form-input').forEach(input => input.value = '');
+    document.querySelectorAll('.option-card.selected').forEach(card => card.classList.remove('selected'));
 }
 
-// Entity Management Functions
-function addStore() {
-    entityCounter++;
-    const entityId = `entity-${entityCounter}`;
-    
-    const entityHtml = `
-        <div class="enhanced-card store-card" id="${entityId}">
-            <div class="subsection-header">Entity ${entityCounter}</div>
-            
-            <!-- Entity Details -->
-            <div class="form-group">
-                <label class="form-label">Entity Name</label>
-                <input type="text" class="form-input" placeholder="Enter entity name" 
-                       onchange="updateEntityData('${entityId}', 'name', this.value)">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Location</label>
-                <input type="text" class="form-input" placeholder="Enter location" 
-                       onchange="updateEntityData('${entityId}', 'location', this.value)">
-            </div>
-            
-            <!-- Transactions Section -->
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                <div class="subsection-header">📊 Transaction Management</div>
-                <div id="transactions-${entityId}">
-                    <!-- Transactions will be added here -->
-                </div>
-                <div class="action-buttons">
-                    <button class="btn-primary" onclick="addTransaction('${entityId}')">Add Transaction</button>
-                </div>
-            </div>
-            
-            <!-- Inventory Section -->
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                <div class="subsection-header">📦 Inventory Management</div>
-                <div id="inventory-${entityId}">
-                    <!-- Inventory items will be added here -->
-                </div>
-                <div class="action-buttons">
-                    <button class="btn-secondary" onclick="addInventoryItem('${entityId}')">Add Inventory Item</button>
-                </div>
-            </div>
-            
-            <!-- Entity Actions -->
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                <div class="action-buttons">
-                    <button class="btn-danger" onclick="removeEntity('${entityId}')">Remove Entity</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.getElementById('stores-container').insertAdjacentHTML('beforeend', entityHtml);
-    
-    // Initialize entity data
-    entityData.entities.push({
-        id: entityId,
-        name: '',
-        location: ''
-    });
-    
-    // Initialize transactions and inventory for this entity
-    entityData.transactions[entityId] = [];
-    entityData.inventory[entityId] = [];
-    transactionCounter[entityId] = 0;
-    inventoryCounter[entityId] = 0;
-}
-
-// Restaurant Schema Functions
-function addRestaurant() {
-    entityCounter++;
-    const entityId = `entity-${entityCounter}`;
-    
-    const entityHtml = `
-        <div class="enhanced-card store-card" id="${entityId}">
-            <div class="subsection-header">Restaurant ${entityCounter}</div>
-            
-            <!-- Restaurant Details -->
-            <div class="form-group">
-                <label class="form-label">Restaurant Name</label>
-                <input type="text" class="form-input" placeholder="Enter restaurant name" 
-                       onchange="updateEntityData('${entityId}', 'name', this.value)">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Location</label>
-                <input type="text" class="form-input" placeholder="Enter location" 
-                       onchange="updateEntityData('${entityId}', 'location', this.value)">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Cuisine Type</label>
-                <select class="select-input" onchange="updateEntityData('${entityId}', 'cuisine', this.value)">
-                    <option value="">Select cuisine type</option>
-                    <option value="Italian">Italian</option>
-                    <option value="Chinese">Chinese</option>
-                    <option value="Japanese">Japanese</option>
-                    <option value="Mexican">Mexican</option>
-                    <option value="Indian">Indian</option>
-                    <option value="French">French</option>
-                    <option value="Thai">Thai</option>
-                    <option value="American">American</option>
-                    <option value="Mediterranean">Mediterranean</option>
-                </select>
-            </div>
-            
-            <!-- Reviews Section -->
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                <div class="subsection-header">⭐ Customer Reviews</div>
-                <div id="transactions-${entityId}">
-                    <!-- Reviews will be added here -->
-                </div>
-                <div class="action-buttons">
-                    <button class="btn-primary" onclick="addReview('${entityId}')">Add Review</button>
-                </div>
-            </div>
-            
-            <!-- Menu Section -->
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                <div class="subsection-header">🍽️ Menu Management</div>
-                <div id="inventory-${entityId}">
-                    <!-- Menu items will be added here -->
-                </div>
-                <div class="action-buttons">
-                    <button class="btn-secondary" onclick="addMenuItem('${entityId}')">Add Menu Item</button>
-                </div>
-            </div>
-            
-            <!-- Restaurant Actions -->
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                <div class="action-buttons">
-                    <button class="btn-danger" onclick="removeEntity('${entityId}')">Remove Restaurant</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.getElementById('stores-container').insertAdjacentHTML('beforeend', entityHtml);
-    
-    // Initialize entity data
-    entityData.entities.push({
-        id: entityId,
-        name: '',
-        location: '',
-        cuisine: ''
-    });
-    
-    // Initialize transactions and inventory for this entity
-    entityData.transactions[entityId] = [];
-    entityData.inventory[entityId] = [];
-    transactionCounter[entityId] = 0;
-    inventoryCounter[entityId] = 0;
-}
-
-// Custom Schema Functions
-function addCustomEntity() {
-    entityCounter++;
-    const entityId = `entity-${entityCounter}`;
-    
-    const entityHtml = `
-        <div class="enhanced-card store-card" id="${entityId}">
-            <div class="subsection-header">Custom Entity ${entityCounter}</div>
-            
-            <!-- Custom Entity Details -->
-            <div class="form-group">
-                <label class="form-label">Entity Name</label>
-                <input type="text" class="form-input" placeholder="Enter entity name" 
-                       onchange="updateEntityData('${entityId}', 'name', this.value)">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Description</label>
-                <textarea class="comment-textarea" placeholder="Describe this entity..."
-                          onchange="updateEntityData('${entityId}', 'description', this.value)"></textarea>
-            </div>
-            
-            <!-- Custom Transactions Section -->
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                <div class="subsection-header">📋 Custom Transactions</div>
-                <div id="transactions-${entityId}">
-                    <!-- Custom transactions will be added here -->
-                </div>
-                <div class="action-buttons">
-                    <button class="btn-primary" onclick="addCustomTransaction('${entityId}')">Add Transaction</button>
-                </div>
-            </div>
-            
-            <!-- Custom Data Section -->
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                <div class="subsection-header">📊 Custom Data</div>
-                <div id="inventory-${entityId}">
-                    <!-- Custom data will be added here -->
-                </div>
-                <div class="action-buttons">
-                    <button class="btn-secondary" onclick="addCustomData('${entityId}')">Add Data Entry</button>
-                </div>
-            </div>
-            
-            <!-- Entity Actions -->
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                <div class="action-buttons">
-                    <button class="btn-danger" onclick="removeEntity('${entityId}')">Remove Entity</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.getElementById('stores-container').insertAdjacentHTML('beforeend', entityHtml);
-    
-    // Initialize entity data
-    entityData.entities.push({
-        id: entityId,
-        name: '',
-        description: ''
-    });
-    
-    // Initialize transactions and inventory for this entity
-    entityData.transactions[entityId] = [];
-    entityData.inventory[entityId] = [];
-    transactionCounter[entityId] = 0;
-    inventoryCounter[entityId] = 0;
-}
-
-// Generic entity functions
-function updateEntityData(entityId, field, value) {
-    const entity = entityData.entities.find(e => e.id === entityId);
-    if (entity) {
-        entity[field] = value;
-    }
-}
-
-function removeEntity(entityId) {
-    // Remove from DOM
-    document.getElementById(entityId).remove();
-    
-    // Remove from data
-    entityData.entities = entityData.entities.filter(entity => entity.id !== entityId);
-    delete entityData.transactions[entityId];
-    delete entityData.inventory[entityId];
-    delete transactionCounter[entityId];
-    delete inventoryCounter[entityId];
-}
-
-// Data Processing Functions
-function processData() {
-    if (entityData.entities.length === 0) {
-        alert('Please add at least one entity before processing data.');
-        return;
-    }
-    
-    // Show results section
-    const resultsSection = document.getElementById('results-section');
-    resultsSection.style.display = 'block';
-    
-    // Generate mock results based on the data
-    const results = generateMockResults();
-    displayResults(results);
-    
-    // Scroll to results
-    resultsSection.scrollIntoView({ behavior: 'smooth' });
-}
-
-function generateMockResults() {
-    const totalEntities = entityData.entities.length;
-    let totalTransactions = 0;
-    let totalRevenue = 0;
-    let totalInventory = 0;
-    
-    // Calculate totals
-    Object.values(entityData.transactions).forEach(entityTransactions => {
-        totalTransactions += entityTransactions.length;
-    });
-    
-    Object.values(entityData.inventory).forEach(entityInventory => {
-        totalInventory += entityInventory.length;
-    });
-    
-    // Generate mock revenue (for demo purposes)
-    totalRevenue = totalTransactions * 1500 + Math.random() * 10000;
-    
-    return {
-        summary: {
-            totalEntities,
-            totalTransactions,
-            totalRevenue: totalRevenue.toFixed(2),
-            totalInventory
-        },
-        entityPerformance: entityData.entities.map(entity => {
-            const entityTransactions = entityData.transactions[entity.id] || [];
-            const entityInventory = entityData.inventory[entity.id] || [];
-            const entityRevenue = entityTransactions.length * 1500 + Math.random() * 5000;
-            
-            return {
-                name: entity.name || `Entity ${entity.id.split('-')[1]}`,
-                location: entity.location || entity.description || 'Not specified',
-                transactions: entityTransactions.length,
-                revenue: entityRevenue.toFixed(2),
-                inventoryItems: entityInventory.length
-            };
-        }),
-        insights: [
-            `You have ${totalEntities} ${currentSchema === 'bike-insights' ? 'store' : currentSchema === 'restaurant-recommender' ? 'restaurant' : 'entity'}${totalEntities !== 1 ? 's' : ''} in your network`,
-            `Total of ${totalTransactions} ${currentSchema === 'bike-insights' ? 'sales' : currentSchema === 'restaurant-recommender' ? 'reviews' : 'transactions'} recorded across all entities`,
-            `Current inventory contains ${totalInventory} items`,
-            totalTransactions > 0 ? `Average revenue per transaction: $${(totalRevenue / totalTransactions).toFixed(2)}` : 'No transaction data available for revenue analysis'
-        ]
-    };
-}
-
-function displayResults(results) {
-    const container = document.getElementById('results-container');
-    
-    const html = `
-        <div style="margin-bottom: 2rem;">
-            <h4 style="color: #333; margin-bottom: 1rem;">📊 Business Summary</h4>
-            <div class="form-grid" style="margin-bottom: 2rem;">
-                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; text-align: center;">
-                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-blue);">${results.summary.totalEntities}</div>
-                    <div style="color: var(--text-muted);">Total Entities</div>
-                </div>
-                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; text-align: center;">
-                    <div style="font-size: 2rem; font-weight: bold; color: var(--success-green);">${results.summary.totalTransactions}</div>
-                    <div style="color: var(--text-muted);">Total Transactions</div>
-                </div>
-                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; text-align: center;">
-                    <div style="font-size: 2rem; font-weight: bold; color: var(--success-green);">$${results.summary.totalRevenue}</div>
-                    <div style="color: var(--text-muted);">Total Revenue</div>
-                </div>
-                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; text-align: center;">
-                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-blue);">${results.summary.totalInventory}</div>
-                    <div style="color: var(--text-muted);">Inventory Items</div>
-                </div>
-            </div>
-        </div>
-        
-        <div style="margin-bottom: 2rem;">
-            <h4 style="color: #333; margin-bottom: 1rem;">🏪 Entity Performance</h4>
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; background: white;">
-                    <thead>
-                        <tr style="background: #f8f9fa;">
-                            <th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid var(--border-color);">Entity</th>
-                            <th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid var(--border-color);">Location</th>
-                            <th style="padding: 0.75rem; text-align: center; border-bottom: 2px solid var(--border-color);">Transactions</th>
-                            <th style="padding: 0.75rem; text-align: center; border-bottom: 2px solid var(--border-color);">Revenue</th>
-                            <th style="padding: 0.75rem; text-align: center; border-bottom: 2px solid var(--border-color);">Inventory</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${results.entityPerformance.map(entity => `
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 0.75rem; font-weight: 500;">${entity.name}</td>
-                                <td style="padding: 0.75rem; color: var(--text-muted);">${entity.location}</td>
-                                <td style="padding: 0.75rem; text-align: center;">${entity.transactions}</td>
-                                <td style="padding: 0.75rem; text-align: center; color: var(--success-green); font-weight: 500;">$${entity.revenue}</td>
-                                <td style="padding: 0.75rem; text-align: center;">${entity.inventoryItems}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div>
-            <h4 style="color: #333; margin-bottom: 1rem;">💡 Key Insights</h4>
-            <ul style="list-style: none; padding: 0;">
-                ${results.insights.map(insight => `
-                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #f0f0f0;">
-                        <span style="color: var(--primary-blue); margin-right: 0.5rem;">•</span>
-                        ${insight}
-                    </li>
-                `).join('')}
-            </ul>
-        </div>
-    `;
-    
-    container.innerHTML = html;
-}
-
-function exportData() {
-    const dataToExport = {
-        timestamp: new Date().toISOString(),
-        schema: currentSchema,
-        entities: entityData.entities,
-        transactions: entityData.transactions,
-        inventory: entityData.inventory
-    };
-    
-    const dataStr = JSON.stringify(dataToExport, null, 2);
-    const dataBlob = new Blob([dataStr], {type: 'application/json'});
-    
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(dataBlob);
-    link.download = `${currentSchema}-data-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-}
-
-function resetAll(showConfirmation = true) {
-    if (!showConfirmation || confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
-        // Reset data
-        entityData = {
-            entities: [],
-            transactions: {},
-            inventory: {}
-        };
-        
-        entityCounter = 0;
-        transactionCounter = {};
-        inventoryCounter = {};
-        
-        // Clear UI
-        document.getElementById('stores-container').innerHTML = '';
-        
-        // Hide results
-        document.getElementById('results-section').style.display = 'none';
-    }
-}
-
-// Placeholder functions for schema-specific functionality
-function addTransaction(entityId) {
-    alert(`${currentSchema === 'bike-insights' ? 'Sales' : currentSchema === 'restaurant-recommender' ? 'Review' : 'Transaction'} functionality will be implemented based on the selected schema`);
-}
-
-function addInventoryItem(entityId) {
-    alert(`${currentSchema === 'bike-insights' ? 'Bike inventory' : currentSchema === 'restaurant-recommender' ? 'Menu item' : 'Inventory'} functionality will be implemented based on the selected schema`);
-}
-
-function addReview(entityId) {
-    alert('Review functionality will be implemented based on restaurant schema');
-}
-
-function addMenuItem(entityId) {
-    alert('Menu item functionality will be implemented based on restaurant schema');
-}
-
-function addCustomTransaction(entityId) {
-    alert('Custom transaction functionality will be implemented based on custom schema');
-}
-
-function addCustomData(entityId) {
-    alert('Custom data functionality will be implemented based on custom schema');
-}
-
-// New API-driven functions
 async function addEntity() {
     if (!currentSchema) {
         alert('Please select a schema first');
         return;
     }
-    
     try {
         const schema = await fetchSchema(currentSchema);
         const rootModel = schema.schemas.RootModel;
-        
-        // Find the main array field (stores, restaurants, etc.)
         const arrayField = findMainArrayField(rootModel);
         if (arrayField) {
             addArrayItem(arrayField.name, arrayField.field);
@@ -1810,14 +975,11 @@ async function addEntity() {
         }
     } catch (error) {
         console.error('Failed to add entity:', error);
-        alert('Failed to add entity. Please try again.');
     }
 }
 
 function findMainArrayField(model) {
     if (!model.properties) return null;
-    
-    // Look for array fields that represent the main entities
     for (const [fieldName, field] of Object.entries(model.properties)) {
         if (field.type === 'array' && field.ui_component === 'array') {
             return { name: fieldName, field: field };
@@ -1832,22 +994,16 @@ function processData() {
         return;
     }
     
-    // Show results section
     const resultsSection = document.getElementById('results-section');
     resultsSection.style.display = 'block';
-    
-    // Generate results based on current form data
     const results = generateSchemaResults();
     displayResults(results);
-    
-    // Scroll to results
     resultsSection.scrollIntoView({ behavior: 'smooth' });
 }
 
 function generateSchemaResults() {
     const data = formData[currentSchema] || {};
     const dataKeys = Object.keys(data);
-    
     return {
         summary: {
             schema: currentSchema,
@@ -1855,12 +1011,35 @@ function generateSchemaResults() {
             dataEntries: JSON.stringify(data, null, 2)
         },
         insights: [
-            `Using schema: ${currentSchema}`,
-            `Completed ${dataKeys.length} form fields`,
-            `Data structure follows API-driven schema format`,
-            'Form data is ready for processing'
+            `Using schema: <strong>${currentSchema}</strong>`,
+            `Completed <strong>${dataKeys.length}</strong> top-level form fields.`,
+            'Data structure follows the selected API-driven schema format.',
+            'Form data is ready for processing or export.'
         ]
     };
+}
+
+function displayResults(results) {
+    const container = document.getElementById('results-container');
+    const dataStr = results.summary.dataEntries;
+    const html = `
+        <div style="margin-bottom: 2rem;">
+            <h4 style="color: #333; margin-bottom: 1rem;">📊 Processing Summary</h4>
+            <ul style="list-style: none; padding: 0;">
+                ${results.insights.map(insight => `
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #f0f0f0;">
+                        <span style="color: var(--primary-blue); margin-right: 0.5rem;">•</span>
+                        ${insight}
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+        <div>
+            <h4 style="color: #333; margin-bottom: 1rem;">📋 Submitted Data (JSON)</h4>
+            <pre style="background-color: #f8f9fa; padding: 1rem; border-radius: 6px; border: 1px solid var(--border-color); white-space: pre-wrap; word-wrap: break-word;"><code>${dataStr}</code></pre>
+        </div>
+    `;
+    container.innerHTML = html;
 }
 
 function exportData() {
@@ -1868,17 +1047,14 @@ function exportData() {
         alert('No data to export. Please fill out the form first.');
         return;
     }
-    
     const dataToExport = {
         timestamp: new Date().toISOString(),
-        schema: currentSchema,
         workflow_name: currentSchema,
         form_data: formData[currentSchema]
     };
     
     const dataStr = JSON.stringify(dataToExport, null, 2);
     const dataBlob = new Blob([dataStr], {type: 'application/json'});
-    
     const link = document.createElement('a');
     link.href = URL.createObjectURL(dataBlob);
     link.download = `${currentSchema}-data-${new Date().toISOString().split('T')[0]}.json`;
@@ -1887,33 +1063,16 @@ function exportData() {
 
 function resetAll(showConfirmation = true) {
     if (!showConfirmation || confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
-        // Reset form data
         formData = {};
         currentSchema = null;
         
-        // Clear UI
         document.getElementById('dynamic-form-container').innerHTML = '';
         document.getElementById('form-header').style.display = 'none';
         document.getElementById('form-actions').style.display = 'none';
         
-        // Remove active states from tiles
-        document.querySelectorAll('.schema-tile').forEach(tile => {
-            tile.classList.remove('active');
-        });
-        
-        // Hide results
+        document.querySelectorAll('.schema-tile').forEach(tile => tile.classList.remove('active'));
         document.getElementById('results-section').style.display = 'none';
     }
 }
-
-// Initialize the application
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Dynamic Workflows System loaded');
-    
-    // Generate schema tiles from API
-    await generateSchemaTiles();
-    
-    console.log('Schema tiles generated successfully');
-});
 </script>
 {% endblock %}
