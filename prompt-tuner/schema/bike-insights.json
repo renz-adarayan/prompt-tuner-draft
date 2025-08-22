@@ -1,189 +1,2065 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Bike Store Management Schema",
-  "description": "Schema for bike store management system with sales, inventory, and customer reviews",
-  "type": "object",
-  "properties": {
-    "stores": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Store"
+  "workflow_name": "bike_insights",
+  "schemas": {
+    "RootModel": {
+      "model_name": "RootModel",
+      "title": "RootModel",
+      "description": "",
+      "type": "object",
+      "properties": {
+        "stores": {
+          "items": {
+            "$ref": "#/$defs/RootModel_Store"
+          },
+          "title": "Stores",
+          "type": "array",
+          "ui_component": "array",
+          "validation": {},
+          "alpine_model": "formData.stores",
+          "display_name": "Stores",
+          "array_config": {
+            "min_items": 0,
+            "max_items": null,
+            "item_schema": {
+              "$ref": "#/$defs/RootModel_Store"
+            },
+            "add_button_text": "Add Stores",
+            "remove_button_text": "Remove"
+          }
+        }
+      },
+      "required": [
+        "stores"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "stores"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "definitions": {
+        "RootModel_BikeSale": {
+          "name": "RootModel_BikeSale",
+          "title": "RootModel_BikeSale",
+          "type": "object",
+          "properties": {
+            "product_code": {
+              "title": "Product Code",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.product_code",
+              "display_name": "Product Code"
+            },
+            "quantity_sold": {
+              "title": "Quantity Sold",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.quantity_sold",
+              "display_name": "Quantity Sold",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "sale_date": {
+              "title": "Sale Date",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.sale_date",
+              "display_name": "Sale Date"
+            },
+            "year": {
+              "title": "Year",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.year",
+              "display_name": "Year",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "month": {
+              "title": "Month",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.month",
+              "display_name": "Month"
+            },
+            "customer_review": {
+              "$ref": "#/$defs/RootModel_CustomerReview",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.customer_review",
+              "display_name": "Customer Review"
+            }
+          },
+          "required": [
+            "product_code",
+            "quantity_sold",
+            "sale_date",
+            "year",
+            "month",
+            "customer_review"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_bikesale": "RootModel_BikeSale"
+            }
+          }
+        },
+        "RootModel_BikeStock": {
+          "name": "RootModel_BikeStock",
+          "title": "RootModel_BikeStock",
+          "type": "object",
+          "properties": {
+            "bike": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/RootModel_MountainBike"
+                },
+                {
+                  "$ref": "#/$defs/RootModel_RoadBike"
+                },
+                {
+                  "$ref": "#/$defs/RootModel_ElectricBike"
+                }
+              ],
+              "title": "Bike",
+              "ui_component": "union_select",
+              "validation": {},
+              "alpine_model": "formData.bike",
+              "display_name": "Bike",
+              "union_options": [
+                {
+                  "value": "rootmodel_mountainbike",
+                  "label": "MountainBike",
+                  "schema_ref": "#/$defs/RootModel_MountainBike",
+                  "discriminator_property": "type",
+                  "discriminator_value": "RootModel_MountainBike"
+                },
+                {
+                  "value": "rootmodel_roadbike",
+                  "label": "RoadBike",
+                  "schema_ref": "#/$defs/RootModel_RoadBike",
+                  "discriminator_property": "type",
+                  "discriminator_value": "RootModel_RoadBike"
+                },
+                {
+                  "value": "rootmodel_electricbike",
+                  "label": "ElectricBike",
+                  "schema_ref": "#/$defs/RootModel_ElectricBike",
+                  "discriminator_property": "type",
+                  "discriminator_value": "RootModel_ElectricBike"
+                }
+              ]
+            },
+            "quantity": {
+              "title": "Quantity",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.quantity",
+              "display_name": "Quantity",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            }
+          },
+          "required": [
+            "bike",
+            "quantity"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_bikestock": "RootModel_BikeStock"
+            }
+          }
+        },
+        "RootModel_CustomerReview": {
+          "name": "RootModel_CustomerReview",
+          "title": "RootModel_CustomerReview",
+          "type": "object",
+          "properties": {
+            "rating": {
+              "title": "Rating",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.rating",
+              "display_name": "Rating",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "comment": {
+              "title": "Comment",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.comment",
+              "display_name": "Comment"
+            }
+          },
+          "required": [
+            "rating",
+            "comment"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_customerreview": "RootModel_CustomerReview"
+            }
+          }
+        },
+        "RootModel_ElectricBike": {
+          "name": "RootModel_ElectricBike",
+          "title": "RootModel_ElectricBike",
+          "type": "object",
+          "properties": {
+            "brand": {
+              "title": "Brand",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.brand",
+              "display_name": "Brand"
+            },
+            "model": {
+              "title": "Model",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.model",
+              "display_name": "Model"
+            },
+            "year": {
+              "title": "Year",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.year",
+              "display_name": "Year",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "price": {
+              "title": "Price",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.price",
+              "display_name": "Price",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "battery_capacity": {
+              "description": "Battery capacity in kWh",
+              "title": "Battery Capacity",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.battery_capacity",
+              "display_name": "Battery Capacity",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "motor_power": {
+              "description": "Motor power in watts",
+              "title": "Motor Power",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.motor_power",
+              "display_name": "Motor Power",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            }
+          },
+          "required": [
+            "brand",
+            "model",
+            "year",
+            "price",
+            "battery_capacity",
+            "motor_power"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_electricbike": "RootModel_ElectricBike"
+            }
+          }
+        },
+        "RootModel_MountainBike": {
+          "name": "RootModel_MountainBike",
+          "title": "RootModel_MountainBike",
+          "type": "object",
+          "properties": {
+            "brand": {
+              "title": "Brand",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.brand",
+              "display_name": "Brand"
+            },
+            "model": {
+              "title": "Model",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.model",
+              "display_name": "Model"
+            },
+            "year": {
+              "title": "Year",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.year",
+              "display_name": "Year",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "price": {
+              "title": "Price",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.price",
+              "display_name": "Price",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "suspension": {
+              "description": "Type of suspension (e.g., full, hardtail)",
+              "title": "Suspension",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.suspension",
+              "display_name": "Suspension"
+            }
+          },
+          "required": [
+            "brand",
+            "model",
+            "year",
+            "price",
+            "suspension"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_mountainbike": "RootModel_MountainBike"
+            }
+          }
+        },
+        "RootModel_RoadBike": {
+          "name": "RootModel_RoadBike",
+          "title": "RootModel_RoadBike",
+          "type": "object",
+          "properties": {
+            "brand": {
+              "title": "Brand",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.brand",
+              "display_name": "Brand"
+            },
+            "model": {
+              "title": "Model",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.model",
+              "display_name": "Model"
+            },
+            "year": {
+              "title": "Year",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.year",
+              "display_name": "Year",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "price": {
+              "title": "Price",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.price",
+              "display_name": "Price",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "frame_material": {
+              "description": "Material of the frame (e.g., carbon, aluminum)",
+              "title": "Frame Material",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.frame_material",
+              "display_name": "Frame Material"
+            }
+          },
+          "required": [
+            "brand",
+            "model",
+            "year",
+            "price",
+            "frame_material"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_roadbike": "RootModel_RoadBike"
+            }
+          }
+        },
+        "RootModel_Store": {
+          "name": "RootModel_Store",
+          "title": "RootModel_Store",
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.name",
+              "display_name": "Name"
+            },
+            "location": {
+              "title": "Location",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.location",
+              "display_name": "Location"
+            },
+            "bike_sales": {
+              "items": {
+                "$ref": "#/$defs/RootModel_BikeSale"
+              },
+              "title": "Bike Sales",
+              "type": "array",
+              "ui_component": "array",
+              "validation": {},
+              "alpine_model": "formData.bike_sales",
+              "display_name": "Bike Sales",
+              "array_config": {
+                "min_items": 0,
+                "max_items": null,
+                "item_schema": {
+                  "$ref": "#/$defs/RootModel_BikeSale"
+                },
+                "add_button_text": "Add Bike Sales",
+                "remove_button_text": "Remove"
+              }
+            },
+            "bike_stock": {
+              "items": {
+                "$ref": "#/$defs/RootModel_BikeStock"
+              },
+              "title": "Bike Stock",
+              "type": "array",
+              "ui_component": "array",
+              "validation": {},
+              "alpine_model": "formData.bike_stock",
+              "display_name": "Bike Stock",
+              "array_config": {
+                "min_items": 0,
+                "max_items": null,
+                "item_schema": {
+                  "$ref": "#/$defs/RootModel_BikeStock"
+                },
+                "add_button_text": "Add Bike Stock",
+                "remove_button_text": "Remove"
+              }
+            }
+          },
+          "required": [
+            "name",
+            "location",
+            "bike_sales",
+            "bike_stock"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_store": "RootModel_Store"
+            }
+          }
+        }
+      },
+      "default_values": {
+        "stores": []
       }
-    }
-  },
-  "required": ["stores"],
-  "definitions": {
-    "Store": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the bike store"
-        },
-        "location": {
-          "type": "string",
-          "description": "Physical location of the store"
-        },
-        "bike_sales": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/BikeSale"
-          }
-        },
-        "bike_stock": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/BikeStock"
-          }
-        }
-      },
-      "required": ["name", "location", "bike_sales", "bike_stock"]
     },
-    "BikeSale": {
-      "type": "object",
-      "properties": {
-        "product_code": {
-          "type": "string",
-          "description": "Unique product identifier"
-        },
-        "quantity_sold": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Number of units sold"
-        },
-        "sale_date": {
-          "type": "string",
-          "format": "date",
-          "description": "Date of the sale"
-        },
-        "year": {
-          "type": "integer",
-          "minimum": 2020,
-          "maximum": 2030,
-          "description": "Year of the sale"
-        },
-        "month": {
-          "type": "string",
-          "enum": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-          "description": "Month of the sale"
-        },
-        "customer_review": {
-          "$ref": "#/definitions/CustomerReview"
-        }
-      },
-      "required": ["product_code", "quantity_sold", "sale_date", "year", "month", "customer_review"]
-    },
-    "BikeStock": {
-      "type": "object",
-      "properties": {
-        "bike": {
-          "oneOf": [
-            {"$ref": "#/definitions/MountainBike"},
-            {"$ref": "#/definitions/RoadBike"},
-            {"$ref": "#/definitions/ElectricBike"}
-          ]
-        },
-        "quantity": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Number of bikes in stock"
-        }
-      },
-      "required": ["bike", "quantity"]
-    },
-    "Bike": {
+    "RootModel_Bike": {
+      "model_name": "RootModel_Bike",
+      "title": "RootModel_Bike",
+      "description": "",
       "type": "object",
       "properties": {
         "brand": {
+          "title": "Brand",
           "type": "string",
-          "description": "Brand of the bike"
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.brand",
+          "display_name": "Brand"
         },
         "model": {
+          "title": "Model",
           "type": "string",
-          "description": "Model of the bike"
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.model",
+          "display_name": "Model"
         },
         "year": {
+          "title": "Year",
           "type": "integer",
-          "minimum": 2020,
-          "maximum": 2030,
-          "description": "Manufacturing year"
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.year",
+          "display_name": "Year",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 1
+          }
         },
         "price": {
+          "title": "Price",
           "type": "number",
-          "minimum": 0,
-          "description": "Price of the bike"
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.price",
+          "display_name": "Price",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
         }
       },
-      "required": ["brand", "model", "year", "price"]
+      "required": [
+        "brand",
+        "model",
+        "year",
+        "price"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "brand",
+          "model",
+          "year",
+          "price"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "default_values": {
+        "brand": "",
+        "model": "",
+        "year": 0,
+        "price": 0
+      }
     },
-    "MountainBike": {
-      "allOf": [
-        {"$ref": "#/definitions/Bike"},
-        {
-          "type": "object",
-          "properties": {
-            "suspension": {
-              "type": "string",
-              "enum": ["full", "hardtail", "rigid"],
-              "description": "Type of suspension"
-            }
-          },
-          "required": ["suspension"]
+    "RootModel_BikeSale": {
+      "model_name": "RootModel_BikeSale",
+      "title": "RootModel_BikeSale",
+      "description": "",
+      "type": "object",
+      "properties": {
+        "product_code": {
+          "title": "Product Code",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.product_code",
+          "display_name": "Product Code"
+        },
+        "quantity_sold": {
+          "title": "Quantity Sold",
+          "type": "integer",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.quantity_sold",
+          "display_name": "Quantity Sold",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 1
+          }
+        },
+        "sale_date": {
+          "title": "Sale Date",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.sale_date",
+          "display_name": "Sale Date"
+        },
+        "year": {
+          "title": "Year",
+          "type": "integer",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.year",
+          "display_name": "Year",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 1
+          }
+        },
+        "month": {
+          "title": "Month",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.month",
+          "display_name": "Month"
+        },
+        "customer_review": {
+          "$ref": "#/$defs/RootModel_CustomerReview",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.customer_review",
+          "display_name": "Customer Review"
         }
-      ]
-    },
-    "RoadBike": {
-      "allOf": [
-        {"$ref": "#/definitions/Bike"},
-        {
+      },
+      "required": [
+        "product_code",
+        "quantity_sold",
+        "sale_date",
+        "year",
+        "month",
+        "customer_review"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "product_code",
+          "quantity_sold",
+          "sale_date",
+          "year",
+          "month",
+          "customer_review"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "definitions": {
+        "RootModel_CustomerReview": {
+          "name": "RootModel_CustomerReview",
+          "title": "RootModel_CustomerReview",
           "type": "object",
           "properties": {
-            "frame_material": {
-              "type": "string",
-              "enum": ["carbon", "aluminum", "steel", "titanium"],
-              "description": "Material of the frame"
-            }
-          },
-          "required": ["frame_material"]
-        }
-      ]
-    },
-    "ElectricBike": {
-      "allOf": [
-        {"$ref": "#/definitions/Bike"},
-        {
-          "type": "object",
-          "properties": {
-            "battery_capacity": {
+            "rating": {
+              "title": "Rating",
               "type": "number",
-              "minimum": 0,
-              "description": "Battery capacity in kWh"
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.rating",
+              "display_name": "Rating",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "comment": {
+              "title": "Comment",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.comment",
+              "display_name": "Comment"
+            }
+          },
+          "required": [
+            "rating",
+            "comment"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_customerreview": "RootModel_CustomerReview"
+            }
+          }
+        }
+      },
+      "default_values": {
+        "product_code": "",
+        "quantity_sold": 0,
+        "sale_date": "",
+        "year": 0,
+        "month": "",
+        "customer_review": null
+      }
+    },
+    "RootModel_BikeSale_Extended": {
+      "model_name": "RootModel_BikeSale_Extended",
+      "title": "RootModel_BikeSale_Extended",
+      "description": "",
+      "type": "object",
+      "properties": {
+        "product_code": {
+          "title": "Product Code",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.product_code",
+          "display_name": "Product Code"
+        },
+        "quantity_sold": {
+          "title": "Quantity Sold",
+          "type": "integer",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.quantity_sold",
+          "display_name": "Quantity Sold",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 1
+          }
+        },
+        "sale_date": {
+          "title": "Sale Date",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.sale_date",
+          "display_name": "Sale Date"
+        },
+        "year": {
+          "title": "Year",
+          "type": "integer",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.year",
+          "display_name": "Year",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 1
+          }
+        },
+        "month": {
+          "title": "Month",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.month",
+          "display_name": "Month"
+        },
+        "customer_review": {
+          "$ref": "#/$defs/RootModel_CustomerReview",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.customer_review",
+          "display_name": "Customer Review"
+        },
+        "store_name": {
+          "title": "Store Name",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.store_name",
+          "display_name": "Store Name"
+        },
+        "location": {
+          "title": "Location",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.location",
+          "display_name": "Location"
+        }
+      },
+      "required": [
+        "product_code",
+        "quantity_sold",
+        "sale_date",
+        "year",
+        "month",
+        "customer_review",
+        "store_name",
+        "location"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "product_code",
+          "quantity_sold",
+          "sale_date",
+          "year",
+          "month",
+          "customer_review",
+          "store_name",
+          "location"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "definitions": {
+        "RootModel_CustomerReview": {
+          "name": "RootModel_CustomerReview",
+          "title": "RootModel_CustomerReview",
+          "type": "object",
+          "properties": {
+            "rating": {
+              "title": "Rating",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.rating",
+              "display_name": "Rating",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "comment": {
+              "title": "Comment",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.comment",
+              "display_name": "Comment"
+            }
+          },
+          "required": [
+            "rating",
+            "comment"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_customerreview": "RootModel_CustomerReview"
+            }
+          }
+        }
+      },
+      "default_values": {
+        "product_code": "",
+        "quantity_sold": 0,
+        "sale_date": "",
+        "year": 0,
+        "month": "",
+        "customer_review": null,
+        "store_name": "",
+        "location": ""
+      }
+    },
+    "RootModel_BikeStock": {
+      "model_name": "RootModel_BikeStock",
+      "title": "RootModel_BikeStock",
+      "description": "",
+      "type": "object",
+      "properties": {
+        "bike": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RootModel_MountainBike"
+            },
+            {
+              "$ref": "#/$defs/RootModel_RoadBike"
+            },
+            {
+              "$ref": "#/$defs/RootModel_ElectricBike"
+            }
+          ],
+          "title": "Bike",
+          "ui_component": "union_select",
+          "validation": {},
+          "alpine_model": "formData.bike",
+          "display_name": "Bike",
+          "union_options": [
+            {
+              "value": "rootmodel_mountainbike",
+              "label": "MountainBike",
+              "schema_ref": "#/$defs/RootModel_MountainBike",
+              "discriminator_property": "type",
+              "discriminator_value": "RootModel_MountainBike"
+            },
+            {
+              "value": "rootmodel_roadbike",
+              "label": "RoadBike",
+              "schema_ref": "#/$defs/RootModel_RoadBike",
+              "discriminator_property": "type",
+              "discriminator_value": "RootModel_RoadBike"
+            },
+            {
+              "value": "rootmodel_electricbike",
+              "label": "ElectricBike",
+              "schema_ref": "#/$defs/RootModel_ElectricBike",
+              "discriminator_property": "type",
+              "discriminator_value": "RootModel_ElectricBike"
+            }
+          ]
+        },
+        "quantity": {
+          "title": "Quantity",
+          "type": "integer",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.quantity",
+          "display_name": "Quantity",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 1
+          }
+        }
+      },
+      "required": [
+        "bike",
+        "quantity"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "bike",
+          "quantity"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "definitions": {
+        "RootModel_ElectricBike": {
+          "name": "RootModel_ElectricBike",
+          "title": "RootModel_ElectricBike",
+          "type": "object",
+          "properties": {
+            "brand": {
+              "title": "Brand",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.brand",
+              "display_name": "Brand"
+            },
+            "model": {
+              "title": "Model",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.model",
+              "display_name": "Model"
+            },
+            "year": {
+              "title": "Year",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.year",
+              "display_name": "Year",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "price": {
+              "title": "Price",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.price",
+              "display_name": "Price",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "battery_capacity": {
+              "description": "Battery capacity in kWh",
+              "title": "Battery Capacity",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.battery_capacity",
+              "display_name": "Battery Capacity",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
             },
             "motor_power": {
+              "description": "Motor power in watts",
+              "title": "Motor Power",
               "type": "number",
-              "minimum": 0,
-              "description": "Motor power in watts"
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.motor_power",
+              "display_name": "Motor Power",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
             }
           },
-          "required": ["battery_capacity", "motor_power"]
+          "required": [
+            "brand",
+            "model",
+            "year",
+            "price",
+            "battery_capacity",
+            "motor_power"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_electricbike": "RootModel_ElectricBike"
+            }
+          }
+        },
+        "RootModel_MountainBike": {
+          "name": "RootModel_MountainBike",
+          "title": "RootModel_MountainBike",
+          "type": "object",
+          "properties": {
+            "brand": {
+              "title": "Brand",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.brand",
+              "display_name": "Brand"
+            },
+            "model": {
+              "title": "Model",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.model",
+              "display_name": "Model"
+            },
+            "year": {
+              "title": "Year",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.year",
+              "display_name": "Year",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "price": {
+              "title": "Price",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.price",
+              "display_name": "Price",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "suspension": {
+              "description": "Type of suspension (e.g., full, hardtail)",
+              "title": "Suspension",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.suspension",
+              "display_name": "Suspension"
+            }
+          },
+          "required": [
+            "brand",
+            "model",
+            "year",
+            "price",
+            "suspension"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_mountainbike": "RootModel_MountainBike"
+            }
+          }
+        },
+        "RootModel_RoadBike": {
+          "name": "RootModel_RoadBike",
+          "title": "RootModel_RoadBike",
+          "type": "object",
+          "properties": {
+            "brand": {
+              "title": "Brand",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.brand",
+              "display_name": "Brand"
+            },
+            "model": {
+              "title": "Model",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.model",
+              "display_name": "Model"
+            },
+            "year": {
+              "title": "Year",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.year",
+              "display_name": "Year",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "price": {
+              "title": "Price",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.price",
+              "display_name": "Price",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "frame_material": {
+              "description": "Material of the frame (e.g., carbon, aluminum)",
+              "title": "Frame Material",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.frame_material",
+              "display_name": "Frame Material"
+            }
+          },
+          "required": [
+            "brand",
+            "model",
+            "year",
+            "price",
+            "frame_material"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_roadbike": "RootModel_RoadBike"
+            }
+          }
         }
-      ]
+      },
+      "default_values": {
+        "bike": null,
+        "quantity": 0
+      }
     },
-    "CustomerReview": {
+    "RootModel_CustomerReview": {
+      "model_name": "RootModel_CustomerReview",
+      "title": "RootModel_CustomerReview",
+      "description": "",
       "type": "object",
       "properties": {
         "rating": {
+          "title": "Rating",
           "type": "number",
-          "minimum": 1,
-          "maximum": 5,
-          "description": "Customer rating from 1 to 5"
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.rating",
+          "display_name": "Rating",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
         },
         "comment": {
+          "title": "Comment",
           "type": "string",
-          "description": "Customer feedback comment"
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.comment",
+          "display_name": "Comment"
         }
       },
-      "required": ["rating", "comment"]
+      "required": [
+        "rating",
+        "comment"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "rating",
+          "comment"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "default_values": {
+        "rating": 0,
+        "comment": ""
+      }
+    },
+    "RootModel_ElectricBike": {
+      "model_name": "RootModel_ElectricBike",
+      "title": "RootModel_ElectricBike",
+      "description": "",
+      "type": "object",
+      "properties": {
+        "brand": {
+          "title": "Brand",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.brand",
+          "display_name": "Brand"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.model",
+          "display_name": "Model"
+        },
+        "year": {
+          "title": "Year",
+          "type": "integer",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.year",
+          "display_name": "Year",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 1
+          }
+        },
+        "price": {
+          "title": "Price",
+          "type": "number",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.price",
+          "display_name": "Price",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
+        },
+        "battery_capacity": {
+          "description": "Battery capacity in kWh",
+          "title": "Battery Capacity",
+          "type": "number",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.battery_capacity",
+          "display_name": "Battery Capacity",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
+        },
+        "motor_power": {
+          "description": "Motor power in watts",
+          "title": "Motor Power",
+          "type": "number",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.motor_power",
+          "display_name": "Motor Power",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
+        }
+      },
+      "required": [
+        "brand",
+        "model",
+        "year",
+        "price",
+        "battery_capacity",
+        "motor_power"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "brand",
+          "model",
+          "year",
+          "price",
+          "battery_capacity",
+          "motor_power"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "default_values": {
+        "brand": "",
+        "model": "",
+        "year": 0,
+        "price": 0,
+        "battery_capacity": 0,
+        "motor_power": 0
+      }
+    },
+    "RootModel_MountainBike": {
+      "model_name": "RootModel_MountainBike",
+      "title": "RootModel_MountainBike",
+      "description": "",
+      "type": "object",
+      "properties": {
+        "brand": {
+          "title": "Brand",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.brand",
+          "display_name": "Brand"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.model",
+          "display_name": "Model"
+        },
+        "year": {
+          "title": "Year",
+          "type": "integer",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.year",
+          "display_name": "Year",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 1
+          }
+        },
+        "price": {
+          "title": "Price",
+          "type": "number",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.price",
+          "display_name": "Price",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
+        },
+        "suspension": {
+          "description": "Type of suspension (e.g., full, hardtail)",
+          "title": "Suspension",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.suspension",
+          "display_name": "Suspension"
+        }
+      },
+      "required": [
+        "brand",
+        "model",
+        "year",
+        "price",
+        "suspension"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "brand",
+          "model",
+          "year",
+          "price",
+          "suspension"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "default_values": {
+        "brand": "",
+        "model": "",
+        "year": 0,
+        "price": 0,
+        "suspension": ""
+      }
+    },
+    "RootModel_RoadBike": {
+      "model_name": "RootModel_RoadBike",
+      "title": "RootModel_RoadBike",
+      "description": "",
+      "type": "object",
+      "properties": {
+        "brand": {
+          "title": "Brand",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.brand",
+          "display_name": "Brand"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.model",
+          "display_name": "Model"
+        },
+        "year": {
+          "title": "Year",
+          "type": "integer",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.year",
+          "display_name": "Year",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 1
+          }
+        },
+        "price": {
+          "title": "Price",
+          "type": "number",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.price",
+          "display_name": "Price",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
+        },
+        "frame_material": {
+          "description": "Material of the frame (e.g., carbon, aluminum)",
+          "title": "Frame Material",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.frame_material",
+          "display_name": "Frame Material"
+        }
+      },
+      "required": [
+        "brand",
+        "model",
+        "year",
+        "price",
+        "frame_material"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "brand",
+          "model",
+          "year",
+          "price",
+          "frame_material"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "default_values": {
+        "brand": "",
+        "model": "",
+        "year": 0,
+        "price": 0,
+        "frame_material": ""
+      }
+    },
+    "RootModel_Store": {
+      "model_name": "RootModel_Store",
+      "title": "RootModel_Store",
+      "description": "",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.name",
+          "display_name": "Name"
+        },
+        "location": {
+          "title": "Location",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.location",
+          "display_name": "Location"
+        },
+        "bike_sales": {
+          "items": {
+            "$ref": "#/$defs/RootModel_BikeSale"
+          },
+          "title": "Bike Sales",
+          "type": "array",
+          "ui_component": "array",
+          "validation": {},
+          "alpine_model": "formData.bike_sales",
+          "display_name": "Bike Sales",
+          "array_config": {
+            "min_items": 0,
+            "max_items": null,
+            "item_schema": {
+              "$ref": "#/$defs/RootModel_BikeSale"
+            },
+            "add_button_text": "Add Bike Sales",
+            "remove_button_text": "Remove"
+          }
+        },
+        "bike_stock": {
+          "items": {
+            "$ref": "#/$defs/RootModel_BikeStock"
+          },
+          "title": "Bike Stock",
+          "type": "array",
+          "ui_component": "array",
+          "validation": {},
+          "alpine_model": "formData.bike_stock",
+          "display_name": "Bike Stock",
+          "array_config": {
+            "min_items": 0,
+            "max_items": null,
+            "item_schema": {
+              "$ref": "#/$defs/RootModel_BikeStock"
+            },
+            "add_button_text": "Add Bike Stock",
+            "remove_button_text": "Remove"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "location",
+        "bike_sales",
+        "bike_stock"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "name",
+          "location",
+          "bike_sales",
+          "bike_stock"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "definitions": {
+        "RootModel_BikeSale": {
+          "name": "RootModel_BikeSale",
+          "title": "RootModel_BikeSale",
+          "type": "object",
+          "properties": {
+            "product_code": {
+              "title": "Product Code",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.product_code",
+              "display_name": "Product Code"
+            },
+            "quantity_sold": {
+              "title": "Quantity Sold",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.quantity_sold",
+              "display_name": "Quantity Sold",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "sale_date": {
+              "title": "Sale Date",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.sale_date",
+              "display_name": "Sale Date"
+            },
+            "year": {
+              "title": "Year",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.year",
+              "display_name": "Year",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "month": {
+              "title": "Month",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.month",
+              "display_name": "Month"
+            },
+            "customer_review": {
+              "$ref": "#/$defs/RootModel_CustomerReview",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.customer_review",
+              "display_name": "Customer Review"
+            }
+          },
+          "required": [
+            "product_code",
+            "quantity_sold",
+            "sale_date",
+            "year",
+            "month",
+            "customer_review"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_bikesale": "RootModel_BikeSale"
+            }
+          }
+        },
+        "RootModel_BikeStock": {
+          "name": "RootModel_BikeStock",
+          "title": "RootModel_BikeStock",
+          "type": "object",
+          "properties": {
+            "bike": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/RootModel_MountainBike"
+                },
+                {
+                  "$ref": "#/$defs/RootModel_RoadBike"
+                },
+                {
+                  "$ref": "#/$defs/RootModel_ElectricBike"
+                }
+              ],
+              "title": "Bike",
+              "ui_component": "union_select",
+              "validation": {},
+              "alpine_model": "formData.bike",
+              "display_name": "Bike",
+              "union_options": [
+                {
+                  "value": "rootmodel_mountainbike",
+                  "label": "MountainBike",
+                  "schema_ref": "#/$defs/RootModel_MountainBike",
+                  "discriminator_property": "type",
+                  "discriminator_value": "RootModel_MountainBike"
+                },
+                {
+                  "value": "rootmodel_roadbike",
+                  "label": "RoadBike",
+                  "schema_ref": "#/$defs/RootModel_RoadBike",
+                  "discriminator_property": "type",
+                  "discriminator_value": "RootModel_RoadBike"
+                },
+                {
+                  "value": "rootmodel_electricbike",
+                  "label": "ElectricBike",
+                  "schema_ref": "#/$defs/RootModel_ElectricBike",
+                  "discriminator_property": "type",
+                  "discriminator_value": "RootModel_ElectricBike"
+                }
+              ]
+            },
+            "quantity": {
+              "title": "Quantity",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.quantity",
+              "display_name": "Quantity",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            }
+          },
+          "required": [
+            "bike",
+            "quantity"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_bikestock": "RootModel_BikeStock"
+            }
+          }
+        },
+        "RootModel_CustomerReview": {
+          "name": "RootModel_CustomerReview",
+          "title": "RootModel_CustomerReview",
+          "type": "object",
+          "properties": {
+            "rating": {
+              "title": "Rating",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.rating",
+              "display_name": "Rating",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "comment": {
+              "title": "Comment",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.comment",
+              "display_name": "Comment"
+            }
+          },
+          "required": [
+            "rating",
+            "comment"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_customerreview": "RootModel_CustomerReview"
+            }
+          }
+        },
+        "RootModel_ElectricBike": {
+          "name": "RootModel_ElectricBike",
+          "title": "RootModel_ElectricBike",
+          "type": "object",
+          "properties": {
+            "brand": {
+              "title": "Brand",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.brand",
+              "display_name": "Brand"
+            },
+            "model": {
+              "title": "Model",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.model",
+              "display_name": "Model"
+            },
+            "year": {
+              "title": "Year",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.year",
+              "display_name": "Year",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "price": {
+              "title": "Price",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.price",
+              "display_name": "Price",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "battery_capacity": {
+              "description": "Battery capacity in kWh",
+              "title": "Battery Capacity",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.battery_capacity",
+              "display_name": "Battery Capacity",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "motor_power": {
+              "description": "Motor power in watts",
+              "title": "Motor Power",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.motor_power",
+              "display_name": "Motor Power",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            }
+          },
+          "required": [
+            "brand",
+            "model",
+            "year",
+            "price",
+            "battery_capacity",
+            "motor_power"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_electricbike": "RootModel_ElectricBike"
+            }
+          }
+        },
+        "RootModel_MountainBike": {
+          "name": "RootModel_MountainBike",
+          "title": "RootModel_MountainBike",
+          "type": "object",
+          "properties": {
+            "brand": {
+              "title": "Brand",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.brand",
+              "display_name": "Brand"
+            },
+            "model": {
+              "title": "Model",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.model",
+              "display_name": "Model"
+            },
+            "year": {
+              "title": "Year",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.year",
+              "display_name": "Year",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "price": {
+              "title": "Price",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.price",
+              "display_name": "Price",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "suspension": {
+              "description": "Type of suspension (e.g., full, hardtail)",
+              "title": "Suspension",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.suspension",
+              "display_name": "Suspension"
+            }
+          },
+          "required": [
+            "brand",
+            "model",
+            "year",
+            "price",
+            "suspension"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_mountainbike": "RootModel_MountainBike"
+            }
+          }
+        },
+        "RootModel_RoadBike": {
+          "name": "RootModel_RoadBike",
+          "title": "RootModel_RoadBike",
+          "type": "object",
+          "properties": {
+            "brand": {
+              "title": "Brand",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.brand",
+              "display_name": "Brand"
+            },
+            "model": {
+              "title": "Model",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.model",
+              "display_name": "Model"
+            },
+            "year": {
+              "title": "Year",
+              "type": "integer",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.year",
+              "display_name": "Year",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 1
+              }
+            },
+            "price": {
+              "title": "Price",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.price",
+              "display_name": "Price",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "frame_material": {
+              "description": "Material of the frame (e.g., carbon, aluminum)",
+              "title": "Frame Material",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.frame_material",
+              "display_name": "Frame Material"
+            }
+          },
+          "required": [
+            "brand",
+            "model",
+            "year",
+            "price",
+            "frame_material"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_roadbike": "RootModel_RoadBike"
+            }
+          }
+        }
+      },
+      "default_values": {
+        "name": "",
+        "location": "",
+        "bike_sales": [],
+        "bike_stock": []
+      }
+    }
+  },
+  "metadata": {
+    "generated_at": "2025-08-22T02:22:35.764674",
+    "total_models": 10,
+    "alpine_version": "3.x",
+    "features": {
+      "validation": true,
+      "nested_objects": true,
+      "arrays": true,
+      "unions": true,
+      "conditional_fields": true
     }
   }
 }

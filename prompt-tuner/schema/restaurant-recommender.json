@@ -1,454 +1,465 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Restaurant Recommender Schema",
-  "description": "Schema for restaurant recommendation system with reviews, menus, and user preferences",
-  "type": "object",
-  "properties": {
-    "restaurants": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Restaurant"
+  "workflow_name": "restaurant_recommender",
+  "schemas": {
+    "RootModel": {
+      "model_name": "RootModel",
+      "title": "RootModel",
+      "description": "The root model for our restaurant data, containing a list of restaurants.",
+      "type": "object",
+      "properties": {
+        "restaurants": {
+          "items": {
+            "$ref": "#/$defs/RootModel_Restaurant"
+          },
+          "title": "Restaurants",
+          "type": "array",
+          "ui_component": "array",
+          "validation": {},
+          "alpine_model": "formData.restaurants",
+          "display_name": "Restaurants",
+          "array_config": {
+            "min_items": 0,
+            "max_items": null,
+            "item_schema": {
+              "$ref": "#/$defs/RootModel_Restaurant"
+            },
+            "add_button_text": "Add Restaurants",
+            "remove_button_text": "Remove"
+          }
+        }
+      },
+      "required": [
+        "restaurants"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "restaurants"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "definitions": {
+        "RootModel_Budget": {
+          "name": "RootModel_Budget",
+          "title": "RootModel_Budget",
+          "type": "object",
+          "properties": {
+            "couple": {
+              "description": "Estimated budget for a couple (2 people)",
+              "title": "Couple",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.couple",
+              "display_name": "Couple",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "small_group": {
+              "description": "Estimated budget for a group of 5-10 people",
+              "title": "Small Group",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.small_group",
+              "display_name": "Small Group",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "large_group": {
+              "description": "Estimated budget for a group of more than 10 people",
+              "title": "Large Group",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.large_group",
+              "display_name": "Large Group",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            }
+          },
+          "required": [
+            "couple",
+            "small_group",
+            "large_group"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_budget": "RootModel_Budget"
+            }
+          }
+        },
+        "RootModel_Restaurant": {
+          "name": "RootModel_Restaurant",
+          "title": "RootModel_Restaurant",
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.name",
+              "display_name": "Name"
+            },
+            "location": {
+              "title": "Location",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.location",
+              "display_name": "Location"
+            },
+            "cuisine": {
+              "title": "Cuisine",
+              "type": "string",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.cuisine",
+              "display_name": "Cuisine"
+            },
+            "budget": {
+              "$ref": "#/$defs/RootModel_Budget",
+              "ui_component": "text_input",
+              "validation": {},
+              "alpine_model": "formData.budget",
+              "display_name": "Budget"
+            }
+          },
+          "required": [
+            "name",
+            "location",
+            "cuisine",
+            "budget"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_restaurant": "RootModel_Restaurant"
+            }
+          }
+        }
+      },
+      "default_values": {
+        "restaurants": []
       }
     },
-    "users": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/User"
+    "RootModel_Budget": {
+      "model_name": "RootModel_Budget",
+      "title": "RootModel_Budget",
+      "description": "Defines the estimated budget for different group sizes.",
+      "type": "object",
+      "properties": {
+        "couple": {
+          "description": "Estimated budget for a couple (2 people)",
+          "title": "Couple",
+          "type": "number",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.couple",
+          "display_name": "Couple",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
+        },
+        "small_group": {
+          "description": "Estimated budget for a group of 5-10 people",
+          "title": "Small Group",
+          "type": "number",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.small_group",
+          "display_name": "Small Group",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
+        },
+        "large_group": {
+          "description": "Estimated budget for a group of more than 10 people",
+          "title": "Large Group",
+          "type": "number",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.large_group",
+          "display_name": "Large Group",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
+        }
+      },
+      "required": [
+        "couple",
+        "small_group",
+        "large_group"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "couple",
+          "small_group",
+          "large_group"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "default_values": {
+        "couple": 0,
+        "small_group": 0,
+        "large_group": 0
       }
     },
-    "recommendations": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Recommendation"
+    "RootModel_Restaurant": {
+      "model_name": "RootModel_Restaurant",
+      "title": "RootModel_Restaurant",
+      "description": "Defines the core details of a single restaurant.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.name",
+          "display_name": "Name"
+        },
+        "location": {
+          "title": "Location",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.location",
+          "display_name": "Location"
+        },
+        "cuisine": {
+          "title": "Cuisine",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.cuisine",
+          "display_name": "Cuisine"
+        },
+        "budget": {
+          "$ref": "#/$defs/RootModel_Budget",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.budget",
+          "display_name": "Budget"
+        }
+      },
+      "required": [
+        "name",
+        "location",
+        "cuisine",
+        "budget"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "name",
+          "location",
+          "cuisine",
+          "budget"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "definitions": {
+        "RootModel_Budget": {
+          "name": "RootModel_Budget",
+          "title": "RootModel_Budget",
+          "type": "object",
+          "properties": {
+            "couple": {
+              "description": "Estimated budget for a couple (2 people)",
+              "title": "Couple",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.couple",
+              "display_name": "Couple",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "small_group": {
+              "description": "Estimated budget for a group of 5-10 people",
+              "title": "Small Group",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.small_group",
+              "display_name": "Small Group",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            },
+            "large_group": {
+              "description": "Estimated budget for a group of more than 10 people",
+              "title": "Large Group",
+              "type": "number",
+              "ui_component": "number_input",
+              "validation": {},
+              "alpine_model": "formData.large_group",
+              "display_name": "Large Group",
+              "number_config": {
+                "min": null,
+                "max": null,
+                "step": 0.01
+              }
+            }
+          },
+          "required": [
+            "couple",
+            "small_group",
+            "large_group"
+          ],
+          "discriminator": {
+            "property_name": "type",
+            "mapping": {
+              "rootmodel_budget": "RootModel_Budget"
+            }
+          }
+        }
+      },
+      "default_values": {
+        "name": "",
+        "location": "",
+        "cuisine": "",
+        "budget": null
+      }
+    },
+    "RootModel_Restaurant_Display": {
+      "model_name": "RootModel_Restaurant_Display",
+      "title": "RootModel_Restaurant_Display",
+      "description": "A flattened model for displaying restaurant data in a table.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.name",
+          "display_name": "Name"
+        },
+        "location": {
+          "title": "Location",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.location",
+          "display_name": "Location"
+        },
+        "cuisine": {
+          "title": "Cuisine",
+          "type": "string",
+          "ui_component": "text_input",
+          "validation": {},
+          "alpine_model": "formData.cuisine",
+          "display_name": "Cuisine"
+        },
+        "budget_for_couple": {
+          "title": "Budget For Couple",
+          "type": "number",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.budget_for_couple",
+          "display_name": "Budget For Couple",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
+        },
+        "budget_for_small_group": {
+          "title": "Budget For Small Group",
+          "type": "number",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.budget_for_small_group",
+          "display_name": "Budget For Small Group",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
+        },
+        "budget_for_large_group": {
+          "title": "Budget For Large Group",
+          "type": "number",
+          "ui_component": "number_input",
+          "validation": {},
+          "alpine_model": "formData.budget_for_large_group",
+          "display_name": "Budget For Large Group",
+          "number_config": {
+            "min": null,
+            "max": null,
+            "step": 0.01
+          }
+        }
+      },
+      "required": [
+        "name",
+        "location",
+        "cuisine",
+        "budget_for_couple",
+        "budget_for_small_group",
+        "budget_for_large_group"
+      ],
+      "ui_metadata": {
+        "display_order": [
+          "name",
+          "location",
+          "cuisine",
+          "budget_for_couple",
+          "budget_for_small_group",
+          "budget_for_large_group"
+        ],
+        "field_groups": {},
+        "conditional_fields": {},
+        "validation_rules": {}
+      },
+      "default_values": {
+        "name": "",
+        "location": "",
+        "cuisine": "",
+        "budget_for_couple": 0,
+        "budget_for_small_group": 0,
+        "budget_for_large_group": 0
       }
     }
   },
-  "required": ["restaurants", "users", "recommendations"],
-  "definitions": {
-    "Restaurant": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique restaurant identifier"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the restaurant"
-        },
-        "location": {
-          "$ref": "#/definitions/Location"
-        },
-        "cuisine_type": {
-          "type": "string",
-          "enum": ["Italian", "Chinese", "Japanese", "Mexican", "Indian", "French", "Thai", "American", "Mediterranean", "Korean", "Vietnamese", "Greek", "Spanish", "Lebanese", "Other"],
-          "description": "Primary cuisine type"
-        },
-        "price_range": {
-          "type": "string",
-          "enum": ["$", "$$", "$$$", "$$$$"],
-          "description": "Price range indicator"
-        },
-        "ambiance": {
-          "type": "string",
-          "enum": ["casual", "fine_dining", "family_friendly", "romantic", "business", "trendy", "cozy", "outdoor"],
-          "description": "Restaurant ambiance type"
-        },
-        "dietary_options": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["vegetarian", "vegan", "gluten_free", "halal", "kosher", "keto", "low_carb", "dairy_free"]
-          },
-          "description": "Available dietary options"
-        },
-        "operating_hours": {
-          "$ref": "#/definitions/OperatingHours"
-        },
-        "contact_info": {
-          "$ref": "#/definitions/ContactInfo"
-        },
-        "menu_items": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/MenuItem"
-          }
-        },
-        "reviews": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Review"
-          }
-        },
-        "features": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["delivery", "takeout", "reservations", "outdoor_seating", "parking", "wifi", "live_music", "bar", "private_dining", "wheelchair_accessible"]
-          },
-          "description": "Restaurant features and amenities"
-        }
-      },
-      "required": ["id", "name", "location", "cuisine_type", "price_range", "ambiance", "menu_items", "reviews"]
-    },
-    "Location": {
-      "type": "object",
-      "properties": {
-        "address": {
-          "type": "string",
-          "description": "Street address"
-        },
-        "city": {
-          "type": "string",
-          "description": "City name"
-        },
-        "state": {
-          "type": "string",
-          "description": "State or province"
-        },
-        "postal_code": {
-          "type": "string",
-          "description": "Postal or ZIP code"
-        },
-        "country": {
-          "type": "string",
-          "description": "Country name"
-        },
-        "coordinates": {
-          "$ref": "#/definitions/Coordinates"
-        }
-      },
-      "required": ["address", "city", "state", "postal_code", "country"]
-    },
-    "Coordinates": {
-      "type": "object",
-      "properties": {
-        "latitude": {
-          "type": "number",
-          "minimum": -90,
-          "maximum": 90,
-          "description": "Latitude coordinate"
-        },
-        "longitude": {
-          "type": "number",
-          "minimum": -180,
-          "maximum": 180,
-          "description": "Longitude coordinate"
-        }
-      },
-      "required": ["latitude", "longitude"]
-    },
-    "OperatingHours": {
-      "type": "object",
-      "properties": {
-        "monday": {"$ref": "#/definitions/DayHours"},
-        "tuesday": {"$ref": "#/definitions/DayHours"},
-        "wednesday": {"$ref": "#/definitions/DayHours"},
-        "thursday": {"$ref": "#/definitions/DayHours"},
-        "friday": {"$ref": "#/definitions/DayHours"},
-        "saturday": {"$ref": "#/definitions/DayHours"},
-        "sunday": {"$ref": "#/definitions/DayHours"}
-      }
-    },
-    "DayHours": {
-      "type": "object",
-      "properties": {
-        "open": {
-          "type": "string",
-          "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$",
-          "description": "Opening time in HH:MM format"
-        },
-        "close": {
-          "type": "string",
-          "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$",
-          "description": "Closing time in HH:MM format"
-        },
-        "closed": {
-          "type": "boolean",
-          "description": "Whether the restaurant is closed on this day"
-        }
-      }
-    },
-    "ContactInfo": {
-      "type": "object",
-      "properties": {
-        "phone": {
-          "type": "string",
-          "description": "Phone number"
-        },
-        "email": {
-          "type": "string",
-          "format": "email",
-          "description": "Email address"
-        },
-        "website": {
-          "type": "string",
-          "format": "uri",
-          "description": "Website URL"
-        }
-      }
-    },
-    "MenuItem": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique menu item identifier"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the menu item"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the menu item"
-        },
-        "category": {
-          "type": "string",
-          "enum": ["appetizer", "main_course", "dessert", "beverage", "side_dish", "salad", "soup", "pasta", "pizza", "sandwich", "seafood", "meat", "vegetarian"],
-          "description": "Menu item category"
-        },
-        "price": {
-          "type": "number",
-          "minimum": 0,
-          "description": "Price of the menu item"
-        },
-        "dietary_tags": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["vegetarian", "vegan", "gluten_free", "halal", "kosher", "keto", "low_carb", "dairy_free", "spicy", "nut_free"]
-          },
-          "description": "Dietary tags for the menu item"
-        },
-        "popularity_score": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 10,
-          "description": "Popularity score based on orders"
-        }
-      },
-      "required": ["id", "name", "category", "price"]
-    },
-    "Review": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique review identifier"
-        },
-        "user_id": {
-          "type": "string",
-          "description": "ID of the user who wrote the review"
-        },
-        "rating": {
-          "type": "number",
-          "minimum": 1,
-          "maximum": 5,
-          "description": "Overall rating from 1 to 5"
-        },
-        "food_rating": {
-          "type": "number",
-          "minimum": 1,
-          "maximum": 5,
-          "description": "Food quality rating"
-        },
-        "service_rating": {
-          "type": "number",
-          "minimum": 1,
-          "maximum": 5,
-          "description": "Service quality rating"
-        },
-        "ambiance_rating": {
-          "type": "number",
-          "minimum": 1,
-          "maximum": 5,
-          "description": "Ambiance rating"
-        },
-        "value_rating": {
-          "type": "number",
-          "minimum": 1,
-          "maximum": 5,
-          "description": "Value for money rating"
-        },
-        "comment": {
-          "type": "string",
-          "description": "Written review comment"
-        },
-        "review_date": {
-          "type": "string",
-          "format": "date",
-          "description": "Date the review was written"
-        },
-        "visit_date": {
-          "type": "string",
-          "format": "date",
-          "description": "Date of the restaurant visit"
-        },
-        "party_size": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Number of people in the dining party"
-        },
-        "occasion": {
-          "type": "string",
-          "enum": ["casual_dining", "date_night", "business_meeting", "celebration", "family_gathering", "solo_dining", "group_outing"],
-          "description": "Occasion for the visit"
-        }
-      },
-      "required": ["id", "user_id", "rating", "comment", "review_date"]
-    },
-    "User": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique user identifier"
-        },
-        "name": {
-          "type": "string",
-          "description": "User's name"
-        },
-        "preferences": {
-          "$ref": "#/definitions/UserPreferences"
-        },
-        "location": {
-          "$ref": "#/definitions/Location"
-        },
-        "dining_history": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/DiningHistory"
-          }
-        }
-      },
-      "required": ["id", "name", "preferences"]
-    },
-    "UserPreferences": {
-      "type": "object",
-      "properties": {
-        "preferred_cuisines": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["Italian", "Chinese", "Japanese", "Mexican", "Indian", "French", "Thai", "American", "Mediterranean", "Korean", "Vietnamese", "Greek", "Spanish", "Lebanese", "Other"]
-          },
-          "description": "User's preferred cuisine types"
-        },
-        "price_range": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["$", "$$", "$$$", "$$$$"]
-          },
-          "description": "Acceptable price ranges"
-        },
-        "dietary_restrictions": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["vegetarian", "vegan", "gluten_free", "halal", "kosher", "keto", "low_carb", "dairy_free", "nut_allergy"]
-          },
-          "description": "User's dietary restrictions"
-        },
-        "preferred_ambiance": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["casual", "fine_dining", "family_friendly", "romantic", "business", "trendy", "cozy", "outdoor"]
-          },
-          "description": "Preferred restaurant ambiance"
-        },
-        "max_distance": {
-          "type": "number",
-          "minimum": 0,
-          "description": "Maximum distance willing to travel (in miles/km)"
-        },
-        "preferred_features": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["delivery", "takeout", "reservations", "outdoor_seating", "parking", "wifi", "live_music", "bar", "private_dining", "wheelchair_accessible"]
-          },
-          "description": "Preferred restaurant features"
-        }
-      }
-    },
-    "DiningHistory": {
-      "type": "object",
-      "properties": {
-        "restaurant_id": {
-          "type": "string",
-          "description": "ID of the restaurant visited"
-        },
-        "visit_date": {
-          "type": "string",
-          "format": "date",
-          "description": "Date of the visit"
-        },
-        "rating_given": {
-          "type": "number",
-          "minimum": 1,
-          "maximum": 5,
-          "description": "Rating given by the user"
-        },
-        "items_ordered": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Menu items ordered during the visit"
-        }
-      },
-      "required": ["restaurant_id", "visit_date", "rating_given"]
-    },
-    "Recommendation": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique recommendation identifier"
-        },
-        "user_id": {
-          "type": "string",
-          "description": "ID of the user receiving the recommendation"
-        },
-        "restaurant_id": {
-          "type": "string",
-          "description": "ID of the recommended restaurant"
-        },
-        "recommendation_score": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 10,
-          "description": "Recommendation confidence score"
-        },
-        "recommendation_date": {
-          "type": "string",
-          "format": "date-time",
-          "description": "When the recommendation was generated"
-        },
-        "reason": {
-          "type": "string",
-          "description": "Explanation for why this restaurant was recommended"
-        },
-        "matching_factors": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["cuisine_match", "price_match", "location_proximity", "dietary_compatibility", "ambiance_match", "high_ratings", "popular_items", "similar_users_liked", "new_restaurant", "trending"]
-          },
-          "description": "Factors that contributed to this recommendation"
-        },
-        "suggested_items": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Specific menu items recommended for this user"
-        }
-      },
-      "required": ["id", "user_id", "restaurant_id", "recommendation_score", "recommendation_date", "reason"]
+  "metadata": {
+    "generated_at": "2025-08-22T02:21:16.015856",
+    "total_models": 4,
+    "alpine_version": "3.x",
+    "features": {
+      "validation": true,
+      "nested_objects": true,
+      "arrays": true,
+      "unions": true,
+      "conditional_fields": true
     }
   }
 }
