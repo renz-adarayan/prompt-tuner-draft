@@ -527,14 +527,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 async function fetchAvailableWorkflows() {
     try {
-        console.log('[fetchAvailableWorkflows] Fetching available workflows from API...');
-        const response = await fetch(`${API_BASE_URL}/list`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        availableWorkflows = data.custom_workflows || [];
-        console.log('[fetchAvailableWorkflows] availableWorkflows:', availableWorkflows);
+        // Hardcoded available workflows
+        availableWorkflows = ['restaurant_recommender', 'bike_insights'];
+        console.log('[fetchAvailableWorkflows] availableWorkflows (hardcoded):', availableWorkflows);
     } catch (error) {
         console.error('[fetchAvailableWorkflows] Failed to fetch available workflows:', error);
         availableWorkflows = []; // Default to an empty array if the fetch fails
