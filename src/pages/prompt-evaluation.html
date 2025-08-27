@@ -74,7 +74,7 @@
             </div>
 
             <!-- Schema Selection Section -->
-            <div class="schema-selection mb-5" x-show="!currentSchema && !isRunning && !hasResults">
+            <div class="schema-selection mb-5" x-show="!workflowQueryParam && !currentSchema && !isRunning && !hasResults">
                 <div class="section-header mb-4 text-start">
                     <h3>Workflow Selection</h3>
                     <p class="text-muted mb-0">Choose a workflow schema to evaluate</p>
@@ -114,7 +114,7 @@
             </div>
 
             <!-- Input Parameters Section -->
-            <div class="input-section mb-5" x-show="currentSchema && !isRunning && !hasResults">
+            <div class="input-section mb-5" x-show="(workflowQueryParam || currentSchema) && !isRunning && !hasResults">
                 <div class="section-header mb-4 text-start">
                     <h3>Input Parameters</h3>
                     <p class="text-muted mb-0">Dynamic forms generated from your workflow schema</p>
@@ -312,24 +312,33 @@
                 selectedPromptVersion: '',
                 revisions: [],
                 showJson: false,
+                workflowQueryParam: null,
                 
                 // Initialization
                 async init() {
                     console.log('Enhanced Prompt Evaluation App initialized');
-                    
-                    // Wait for dynamic workflow to be fully ready
+                    const params = new URLSearchParams(window.location.search);
+                    this.workflowQueryParam = params.get('workflow');
                     await this.waitForDynamicWorkflow();
-                    
-                    // Setup state synchronization with modular classes
                     this.setupStateSync();
-                    
-                    // Initialize modular workflow system
                     if (window.dynamicWorkflow) {
                         await window.dynamicWorkflow.init();
                         this.syncState();
+                        // Only auto-select if not already selected
+                        if (this.workflowQueryParam && this.currentSchema !== this.workflowQueryParam) {
+                            const trySelect = async () => {
+                                if (window.dynamicWorkflow.availableWorkflows?.length) {
+                                    if (window.dynamicWorkflow.currentSchema !== this.workflowQueryParam) {
+                                        await window.dynamicWorkflow.selectSchema(this.workflowQueryParam);
+                                        this.syncState();
+                                    }
+                                } else {
+                                    setTimeout(trySelect, 100);
+                                }
+                            };
+                            trySelect();
+                        }
                     }
-                    
-                    // Initialize prompt version system
                     await this.loadRevisionsFromAPI();
                     this.initializePromptVersion();
                 },
