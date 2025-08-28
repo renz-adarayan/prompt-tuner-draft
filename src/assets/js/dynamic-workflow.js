@@ -602,48 +602,14 @@ class DynamicWorkflowManager {
      * Parse field name from DOM element ID
      */
     parseFieldNameFromId(elementId) {
-        // Handle different ID patterns:
-        // "field-fieldName" -> "fieldName"
-        // "nested-parent-child" -> "parent.child"
-        // "fieldName-itemIndex-propName" -> handle array items
-        
-        if (elementId.startsWith('field-')) {
-            return elementId.replace('field-', '');
-        }
-        
-        if (elementId.startsWith('nested-')) {
-            const parts = elementId.replace('nested-', '').split('-');
-            return parts.join('.');
-        }
-        
-        // Handle array item patterns: "arrayField-0-propName" 
-        if (elementId.includes('-') && /\d+/.test(elementId)) {
-            const parts = elementId.split('-');
-            // If there's a number in the parts, it's likely an array item
-            const numberIndex = parts.findIndex(part => /^\d+$/.test(part));
-            if (numberIndex > 0) {
-                // Return the last part as property name for array items
-                return parts[parts.length - 1];
-            }
-        }
-        
-        // For other patterns, try to extract meaningful field name
-        const parts = elementId.split('-');
-        if (parts.length >= 2) {
-            return parts[parts.length - 1]; // Take the last part as field name
-        }
-        
-        return elementId;
+        return BaseManager.parseFieldNameFromId(elementId);
     }
 
     /**
      * Sanitize field name from label text
      */
     sanitizeFieldName(labelText) {
-        return labelText.toLowerCase()
-            .replace(/[^\w\s]/g, '') // Remove special characters
-            .replace(/\s+/g, '_')     // Replace spaces with underscores
-            .trim();
+        return BaseManager.sanitizeFieldName(labelText);
     }
 
     /**

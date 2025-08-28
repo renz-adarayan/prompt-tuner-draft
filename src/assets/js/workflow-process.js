@@ -456,19 +456,12 @@ function workflowProcessApp() {
         
         // Get status badge class
         getStatusBadgeClass(status) {
-            const statusClasses = {
-                'ready': 'bg-success',
-                'development': 'bg-warning',
-                'maintenance': 'bg-secondary',
-                'error': 'bg-danger',
-                'running': 'bg-primary'
-            };
-            return statusClasses[status] || 'bg-secondary';
+            return DisplayUtils.getStatusBadgeClass(status);
         },
         
         // Format status text
         formatStatus(status) {
-            return status.charAt(0).toUpperCase() + status.slice(1);
+            return DisplayUtils.formatStatus(status);
         },
         
         // Run evaluation

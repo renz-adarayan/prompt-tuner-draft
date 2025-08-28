@@ -80,10 +80,7 @@ function workflowApp() {
         
         // Format workflow name to be more readable
         formatWorkflowName(workflowId) {
-            return workflowId
-                .split('_')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ');
+            return DisplayUtils.formatWorkflowName(workflowId);
         },
         
         // Determine workflow status based on API response
@@ -171,18 +168,12 @@ function workflowApp() {
         
         // Get status badge class
         getStatusBadgeClass(status) {
-            const statusClasses = {
-                'ready': 'bg-success',
-                'development': 'bg-warning',
-                'maintenance': 'bg-secondary',
-                'error': 'bg-danger'
-            };
-            return statusClasses[status] || 'bg-secondary';
+            return DisplayUtils.getStatusBadgeClass(status);
         },
-        
+
         // Format status text
         formatStatus(status) {
-            return status.charAt(0).toUpperCase() + status.slice(1);
+            return DisplayUtils.formatStatus(status);
         },
         
         // Retry loading workflows
@@ -192,28 +183,12 @@ function workflowApp() {
     };
 }
 
-// Utility functions
+// Legacy utility functions for backward compatibility
+// These now delegate to the new utility classes
 const utils = {
-    // Format date
-    formatDate(dateString) {
-        return new Date(dateString).toLocaleDateString();
-    },
-    
-    // Show toast notification
-    showToast(message, type = 'info') {
-        // Implementation for toast notifications
-        console.log(`${type.toUpperCase()}: ${message}`);
-    },
-    
-    // Validate URL
-    isValidUrl(string) {
-        try {
-            new URL(string);
-            return true;
-        } catch (_) {
-            return false;
-        }
-    }
+    formatDate: (dateString, format = 'short') => DisplayUtils.formatDate(dateString, format),
+    showToast: (message, type = 'info') => DisplayUtils.showToast(message, type),
+    isValidUrl: (string) => ValidationUtils.isValidUrl(string)
 };
 
 // Export for use in HTML

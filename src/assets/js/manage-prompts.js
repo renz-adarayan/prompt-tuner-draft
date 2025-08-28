@@ -48,10 +48,7 @@ function managePromptsApp() {
 
         // Format workflow name for display
         formatWorkflowName(workflowId) {
-            return workflowId
-                .split('_')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ');
+            return DisplayUtils.formatWorkflowName(workflowId);
         },
 
         // Load sample data (replace with API call when backend is ready)
@@ -388,9 +385,7 @@ function managePromptsApp() {
 
         // Format version text to proper case
         formatVersionText(versionId) {
-            if (!versionId) return '';
-            // Convert v1, v2, etc. to V1, V2, etc.
-            return versionId.charAt(0).toUpperCase() + versionId.slice(1).toLowerCase();
+            return DisplayUtils.formatVersionText(versionId);
         },
 
         // Clean preview text by removing special characters and formatting

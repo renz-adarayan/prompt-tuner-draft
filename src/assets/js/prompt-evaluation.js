@@ -850,30 +850,21 @@ function promptEvaluationApp() {
         
         // Get status badge class
         getStatusBadgeClass() {
-            if (this.isRunning) return 'bg-warning';
-            if (this.hasResults) return 'bg-success';
-            return 'bg-info';
+            if (this.isRunning) return DisplayUtils.getStatusBadgeClass('running');
+            if (this.hasResults) return DisplayUtils.getStatusBadgeClass('completed');
+            return DisplayUtils.getStatusBadgeClass('ready');
         },
         
         // Get status text
         getStatusText() {
-            if (this.isRunning) return 'Running';
-            if (this.hasResults) return 'Completed';
-            return 'Ready';
+            if (this.isRunning) return DisplayUtils.formatStatus('running');
+            if (this.hasResults) return DisplayUtils.formatStatus('completed');
+            return DisplayUtils.formatStatus('ready');
         },
         
         // Get agent status class
         getAgentStatusClass(status) {
-            switch (status.toLowerCase()) {
-                case 'success':
-                    return 'bg-success';
-                case 'warning':
-                    return 'bg-warning';
-                case 'error':
-                    return 'bg-danger';
-                default:
-                    return 'bg-info';
-            }
+            return DisplayUtils.getAgentStatusClass(status);
         },
 
         // Get agent description from workflow config
