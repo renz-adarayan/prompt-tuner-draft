@@ -146,23 +146,39 @@ class DynamicWorkflowManager {
     }
 
     /**
-     * Fetch schema from API with caching
+     * Fetch schema from local files with caching
      */
     async fetchSchema(workflowName) {
         if (this.schemaCache[workflowName]) {
             return this.schemaCache[workflowName];
         }
         try {
-            const response = await fetch(`${this.API_BASE_URL}/schema/${workflowName}/`);
+            // Try to load from local schema files first
+            const response = await fetch(`../schema/${workflowName}.json`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const schema = await response.json();
             this.schemaCache[workflowName] = schema;
+            console.log(`Successfully loaded schema for ${workflowName} from local file`);
             return schema;
         } catch (error) {
-            console.error(`Failed to fetch schema for ${workflowName}:`, error);
-            throw new Error(`Schema fetch failed: ${workflowName}`);
+            console.error(`Failed to fetch schema for ${workflowName} from local file:`, error);
+            
+            // Fallback to API if local file fails
+            try {
+                const response = await fetch(`${this.API_BASE_URL}/schema/${workflowName}/`);
+                if (!response.ok) {
+                    throw new Error(`API HTTP error! status: ${response.status}`);
+                }
+                const schema = await response.json();
+                this.schemaCache[workflowName] = schema;
+                console.log(`Successfully loaded schema for ${workflowName} from API`);
+                return schema;
+            } catch (apiError) {
+                console.error(`Failed to fetch schema for ${workflowName} from API:`, apiError);
+                throw new Error(`Schema fetch failed from both local and API: ${workflowName}`);
+            }
         }
     }
 
