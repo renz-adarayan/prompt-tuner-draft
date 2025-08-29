@@ -88,45 +88,6 @@
                 </div>
             </div>
 
-            <!-- Schema Selection Section -->
-            <div class="schema-selection mb-5" x-show="!workflowQueryParam && !currentSchema && !isRunning && !hasResults">
-                <div class="section-header mb-4 text-start">
-                    <h3>Workflow Selection</h3>
-                    <p class="text-muted mb-0">Choose a workflow schema to evaluate</p>
-                </div>
-                
-                <div class="row row-cols-1 row-cols-md-2 g-4" id="schema-selector">
-                    <!-- Loading state -->
-                    <template x-if="!availableWorkflows.length && !schemasLoaded">
-                        <div class="text-center py-4">
-                            <div class="custom-spinner mb-3"></div>
-                            <p class="text-muted">Loading workflows...</p>
-                        </div>
-                    </template>
-                    
-                    <!-- No workflows found -->
-                    <template x-if="availableWorkflows.length === 0 && schemasLoaded">
-                        <div class="text-center py-5 text-muted">No workflows found.</div>
-                    </template>
-                    
-                    <!-- Schema tiles -->
-                    <template x-for="workflow in availableWorkflows" :key="workflow.name">
-                        <div class="col">
-                            <div class="card card-hover h-100 schema-tile position-relative evaluation-card" 
-                                 :id="workflow.name + '-schema'"
-                                 :class="{'active': currentSchema === workflow.name}"
-                                 x-on:click="selectSchema(workflow.name)" 
-                                 style="cursor: pointer;">
-                                <div class="card-body text-center p-4">
-                                    <div class="display-4 mb-3">⚙️</div>
-                                    <h5 class="card-title fw-semibold" x-text="workflow.title"></h5>
-                                    <p class="card-text text-muted small" x-text="workflow.description"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </div>
 
             <!-- Input Parameters Section -->
             <div class="input-section mb-5" x-show="(workflowQueryParam || currentSchema) && !isRunning && !hasResults">
