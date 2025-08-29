@@ -39,9 +39,8 @@ class DynamicWorkflowManager {
         // Initialize dependencies
         this.initializeDependencies();
         
-        // Load available workflows
-        await this.fetchAvailableWorkflows();
-        console.log('Schema tiles generated successfully');
+    // Load selected workflow
+    await this.fetchWorkflow();
     }
 
     /**
@@ -62,63 +61,64 @@ class DynamicWorkflowManager {
     }
 
     /**
-     * Fetch available workflows from API
+     * Fetch workflows from API
      */
-    async fetchAvailableWorkflows() {
+    async fetchWorkflow() {
         // Prevent multiple simultaneous calls
         if (this._isLoadingWorkflows) {
-            console.log('[fetchAvailableWorkflows] Already loading workflows, skipping...');
+            console.log('[fetchWorkflow] Already loading workflow, skipping...');
             return;
         }
-        
+
         this._isLoadingWorkflows = true;
-        
+
         try {
             // Reset state first
             this.availableWorkflows = [];
             this.schemasLoaded = false;
-            
-            // Hardcoded available workflows
-            const workflowNames = ['bike_insights', 'restaurant_recommender', 'bike_stock', 'bike_sales'];
-            console.log('[fetchAvailableWorkflows] Starting to process workflows:', workflowNames);
-            
-            for (const workflowName of workflowNames) {
-                console.log(`[fetchAvailableWorkflows] Processing workflow: ${workflowName}`);
-                try {
-                    const schema = await this.fetchSchema(workflowName);
-                    const rootModel = schema.schemas.RootModel;
-                    const schemaTitle = this.getSchemaTitle(rootModel, workflowName);
-                    
-                    const workflow = {
-                        name: workflowName,
-                        title: schemaTitle,
-                        description: rootModel.description || `Dynamic ${workflowName.replace(/_/g, ' ')} workflow`
-                    };
-                    
-                    this.availableWorkflows.push(workflow);
-                    console.log(`[fetchAvailableWorkflows] Successfully added workflow: ${workflowName}`, workflow);
-                } catch (error) {
-                    console.error(`Failed to load schema for ${workflowName}:`, error);
-                    
-                    // Create unique fallback titles based on workflow name
-                    const fallbackTitle = this.createFallbackTitle(workflowName);
-                    const fallbackWorkflow = {
-                        name: workflowName,
-                        title: fallbackTitle,
-                        description: `${fallbackTitle} workflow (schema unavailable)`
-                    };
-                    
-                    this.availableWorkflows.push(fallbackWorkflow);
-                    console.log(`[fetchAvailableWorkflows] Added fallback workflow: ${workflowName}`, fallbackWorkflow);
-                }
+
+            // Get workflow from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const selectedWorkflow = urlParams.get('workflow');
+            if (!selectedWorkflow) {
+                console.warn('[fetchWorkflow] No workflow selected in URL.');
+                this.schemasLoaded = true;
+                return;
             }
-            
+            console.log(`[fetchWorkflow] Processing selected workflow: ${selectedWorkflow}`);
+            try {
+                const schema = await this.fetchSchema(selectedWorkflow);
+                const rootModel = schema.schemas.RootModel;
+                const schemaTitle = this.getSchemaTitle(rootModel, selectedWorkflow);
+
+                const workflow = {
+                    name: selectedWorkflow,
+                    title: schemaTitle,
+                    description: rootModel.description || `Dynamic ${selectedWorkflow.replace(/_/g, ' ')} workflow`
+                };
+
+                this.availableWorkflows.push(workflow);
+                console.log(`[fetchWorkflow] Successfully added workflow: ${selectedWorkflow}`, workflow);
+            } catch (error) {
+                console.error(`Failed to load schema for ${selectedWorkflow}:`, error);
+
+                // Create unique fallback title
+                const fallbackTitle = this.createFallbackTitle(selectedWorkflow);
+                const fallbackWorkflow = {
+                    name: selectedWorkflow,
+                    title: fallbackTitle,
+                    description: `${fallbackTitle} workflow (schema unavailable)`
+                };
+
+                this.availableWorkflows.push(fallbackWorkflow);
+                console.log(`[fetchWorkflow] Added fallback workflow: ${selectedWorkflow}`, fallbackWorkflow);
+            }
+
             this.schemasLoaded = true;
-            console.log('[fetchAvailableWorkflows] Final availableWorkflows:', this.availableWorkflows);
-            console.log(`[fetchAvailableWorkflows] Total workflows loaded: ${this.availableWorkflows.length}`);
-            
+            console.log('[fetchWorkflow] Final availableWorkflows:', this.availableWorkflows);
+
         } catch (error) {
-            console.error('[fetchAvailableWorkflows] Failed to fetch available workflows:', error);
+            console.error('[fetchWorkflow] Failed to fetch workflow:', error);
             this.availableWorkflows = [];
             this.schemasLoaded = true;
         } finally {
@@ -152,32 +152,31 @@ class DynamicWorkflowManager {
         if (this.schemaCache[workflowName]) {
             return this.schemaCache[workflowName];
         }
+        // Try to load from API first
         try {
-            // Try to load from local schema files first
-            const response = await fetch(`../schema/${workflowName}.json`);
+            const response = await fetch(`${this.API_BASE_URL}/schema/${workflowName}/`);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`API HTTP error! status: ${response.status}`);
             }
             const schema = await response.json();
             this.schemaCache[workflowName] = schema;
-            console.log(`Successfully loaded schema for ${workflowName} from local file`);
+            console.log(`Successfully loaded schema for ${workflowName} from API`);
             return schema;
-        } catch (error) {
-            console.error(`Failed to fetch schema for ${workflowName} from local file:`, error);
-            
-            // Fallback to API if local file fails
+        } catch (apiError) {
+            console.error(`Failed to fetch schema for ${workflowName} from API:`, apiError);
+            // Fallback to local file if API fails
             try {
-                const response = await fetch(`${this.API_BASE_URL}/schema/${workflowName}/`);
+                const response = await fetch(`../schema/${workflowName}.json`);
                 if (!response.ok) {
-                    throw new Error(`API HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const schema = await response.json();
                 this.schemaCache[workflowName] = schema;
-                console.log(`Successfully loaded schema for ${workflowName} from API`);
+                console.log(`Successfully loaded schema for ${workflowName} from local file`);
                 return schema;
-            } catch (apiError) {
-                console.error(`Failed to fetch schema for ${workflowName} from API:`, apiError);
-                throw new Error(`Schema fetch failed from both local and API: ${workflowName}`);
+            } catch (error) {
+                console.error(`Failed to fetch schema for ${workflowName} from local file:`, error);
+                throw new Error(`Schema fetch failed from both API and local file: ${workflowName}`);
             }
         }
     }
